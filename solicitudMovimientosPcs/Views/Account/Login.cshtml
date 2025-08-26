@@ -1,0 +1,109 @@
+﻿@model solicitudMovimientosPcs.Models.Account.LoginViewModel
+@{
+    ViewData["Title"] = "Iniciar Sesión";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Movimientos PCS</title>
+
+    <!-- Bootstrap primero -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <!-- Font Awesome después -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- Tu CSS al final, con bust de caché -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="bg-light">
+    <div class="container">
+        <div class="row justify-content-center min-vh-100 align-items-center">
+            <div class="col-lg-5 col-md-7">
+                <!-- Tarjeta de Login -->
+                <div class="card shadow-lg rounded-3 overflow-hidden border-0">
+
+                    <!-- Header usa tu clase personalizada -->
+                    <div class="card-header custom-header-primary py-4 text-center">
+                        <div class="card-header custom-header-primary py-4 text-center">
+                            <img src="~/images/logo.png" asp-append-version="true"
+                                 alt="Movimientos PCS" class="mb-3" style="height:56px; width:auto;" />
+                            <h2 class="mb-0 text-white">Iniciar Sesión</h2>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-4 p-sm-5">
+                        @if (ViewBag.ErrorMessage != null)
+                        {
+                            <div class="alert alert-danger d-flex align-items-center mb-4">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                <div>@ViewBag.ErrorMessage</div>
+                            </div>
+                        }
+
+                        <form method="post" asp-action="Login" asp-controller="Account" class="needs-validation" novalidate>
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden" asp-for="ReturnUrl" />
+
+                            <div class="mb-4">
+                                <div class="form-floating">
+                                    <input asp-for="Username" class="form-control" placeholder="Usuario" autocomplete="username" />
+                                    <label for="Username"><i class="fas fa-user me-2"></i>Usuario</label>
+                                </div>
+                                <span asp-validation-for="Username" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="form-floating">
+                                    <input asp-for="Password" class="form-control" placeholder="Contraseña" autocomplete="current-password" type="password" />
+                                    <label for="Password"><i class="fas fa-lock me-2"></i>Contraseña</label>
+                                </div>
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" asp-for="RememberMe" />
+                                    <label class="form-check-label" for="RememberMe">Recordarme</label>
+                                </div>
+                                <span asp-validation-for="Password" class="text-danger"></span>
+                            </div>
+
+                            <div class="d-grid mb-3">
+                                <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Ingresar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="card-footer bg-light text-center py-3">
+                        <p class="mb-0 small text-muted">
+                            &copy; @DateTime.Now.Year - Sistema de Solicitudes de Cambios en PCS
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Validación de formulario
+        (function () {
+            'use strict'
+            var forms = document.querySelectorAll('.needs-validation')
+            Array.prototype.slice.call(forms).forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) { event.preventDefault(); event.stopPropagation(); }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+        })()
+    </script>
+</body>
+</html>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

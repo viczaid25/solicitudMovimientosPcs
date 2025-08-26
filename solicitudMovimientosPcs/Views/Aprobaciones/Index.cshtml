@@ -1,0 +1,105 @@
+﻿@model IEnumerable<solicitudMovimientosPcs.Models.PcMovimientosAprobaciones>
+@using solicitudMovimientosPcs.Models
+
+@{
+    ViewData["Title"] = "Aprobaciones (Manager)";
+}
+
+<div class="d-flex align-items-center mb-3">
+    <h2 class="mb-0">Solicitudes pendientes (Manager)</h2>
+</div>
+
+@if (TempData["Ok"] != null)
+{
+    <div class="alert alert-success"><i class="fas fa-check-circle me-2"></i>@TempData["Ok"]</div>
+}
+@if (TempData["Warn"] != null)
+{
+    <div class="alert alert-warning"><i class="fas fa-info-circle me-2"></i>@TempData["Warn"]</div>
+}
+@if (TempData["Err"] != null)
+{
+    <div class="alert alert-danger"><i class="fas fa-times-circle me-2"></i>@TempData["Err"]</div>
+}
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No hay solicitudes pendientes por Manager.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle" id="datatable">
+            <thead class="table-light">
+                <tr>
+                    <th>Solicitud</th>
+                    <th>Fecha</th>
+                    <th>Solicitante</th>
+                    <th>Departamento</th>
+                    <th>Línea</th>
+                    <th>Urgencia</th>
+                    <th class="text-end">Items</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var a in Model)
+                {
+                    var r = a.Solicitud!;
+                    <tr>
+                        <td>#@r.Id</td>
+                        <td>@r.Fecha.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@r.Solicitante</td>
+                        <td>@r.Departamento</td>
+                        <td>@r.Linea</td>
+                        <td><span class="@BadgeForUrgencia(r.Urgencia)">@r.Urgencia</span></td>
+                        <td class="text-end">@((r.Items?.Count) ?? 0)</td>
+                        <td class="text-end">
+                            <a asp-action="Details" asp-route-id="@r.Id" class="btn btn-sm btn-outline-secondary me-2">
+                                <i class="fas fa-eye me-1"></i> Ver
+                            </a>
+                            <form asp-action="Approve" asp-route-id="@r.Id" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    <i class="fas fa-check me-1"></i> Aprobar
+                                </button>
+                            </form>
+                            <form asp-action="Reject" asp-route-id="@r.Id" method="post" class="d-inline ms-1"
+                                  onsubmit="return confirm('¿Rechazar la solicitud #@r.Id?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-times me-1"></i> Rechazar
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+
+
+            </tbody>
+        </table>
+    </div>
+}
+
+@functions {
+    string BadgeForUrgencia(Urgencia u) => u switch
+    {
+        Urgencia.Critica => "badge bg-danger",
+        Urgencia.Alta => "badge bg-warning text-dark",
+        Urgencia.Media => "badge bg-info text-dark",
+        _ => "badge bg-secondary"
+    };
+}
+
+@section Scripts {
+    <script>
+        // Si usas DataTables
+        if (window.jQuery && $.fn.DataTable) {
+          $('#datatable').DataTable({
+            responsive:true,
+            pageLength:10,
+            language:{ url:'https://cdn.datatables.net/plug-ins/1.13.4/i18n/es-MX.json' }
+          });
+        }
+    </script>
+}

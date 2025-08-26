@@ -1,0 +1,64 @@
+﻿@model solicitudMovimientosPcs.Models.PcMovimientosRequest
+@{
+    ViewData["Title"] = "Detalle Solicitud";
+}
+<h2>Solicitud #@Model.Id</h2>
+<p><strong>Solicitante:</strong> @Model.Solicitante</p>
+<p><strong>Departamento:</strong> @Model.Departamento</p>
+<p><strong>Línea:</strong> @Model.Linea</p>
+<p><strong>Urgencia:</strong> @Model.Urgencia</p>
+<p><strong>Estatus:</strong> @Model.RequestStatus</p>
+
+<h4>Items</h4>
+<table class="table">
+    <thead>
+        <tr>
+            <th>No.</th>
+            <th>Núm. Parte</th>
+            <th>Descripción</th>
+            <th>ClaseA</th>
+            <th>UbicA</th>
+            <th>CantA</th>
+            <th>ClaseD</th>
+            <th>UbicD</th>
+            <th>CantD</th>
+            <th>CodMov</th>
+            <th>Moneda</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var it in Model.Items.OrderBy(x => x.Numero))
+        {
+            <tr>
+                <td>@it.Numero</td>
+                <td>@it.NumParte</td>
+                <td>@it.Descripcion</td>
+                <td>@it.ClaseA</td>
+                <td>@it.UbicacionA</td>
+                <td>@it.CantidadA</td>
+                <td>@it.ClaseD</td>
+                <td>@it.UbicacionD</td>
+                <td>@it.CantidadD</td>
+                <td>@it.CodMov</td>
+                <td>@it.Moneda</td>
+                <td>@it.Total</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (Model.Aprobaciones is not null)
+{
+    <h4>Aprobaciones</h4>
+    <ul>
+        <li>MNG: @Model.Aprobaciones.MngStatus (@Model.Aprobaciones.MngDate?.ToString("g"))</li>
+        <li>JPN: @Model.Aprobaciones.JpnStatus (@Model.Aprobaciones.JpnDate?.ToString("g"))</li>
+        <li>MC: @Model.Aprobaciones.McStatus (@Model.Aprobaciones.McDate?.ToString("g"))</li>
+        <li>PL: @Model.Aprobaciones.PlStatus (@Model.Aprobaciones.PlDate?.ToString("g"))</li>
+        <li>PCMNG: @Model.Aprobaciones.PcMngStatus (@Model.Aprobaciones.PcMngDate?.ToString("g"))</li>
+        <li>PCJPN: @Model.Aprobaciones.PcJpnStatus (@Model.Aprobaciones.PcJpnDate?.ToString("g"))</li>
+        <li>FINMNG: @Model.Aprobaciones.FinMngStatus (@Model.Aprobaciones.FinMngDate?.ToString("g"))</li>
+        <li>FINJPN: @Model.Aprobaciones.FinJpnStatus (@Model.Aprobaciones.FinJpnDate?.ToString("g"))</li>
+    </ul>
+}

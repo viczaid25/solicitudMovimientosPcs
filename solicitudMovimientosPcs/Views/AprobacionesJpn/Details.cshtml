@@ -1,0 +1,127 @@
+﻿@model solicitudMovimientosPcs.Models.PcMovimientosRequest
+@using solicitudMovimientosPcs.Models
+@{
+    ViewData["Title"] = "Detalle de Solicitud (JPN)";
+    var apro = ViewBag.Aprob as PcMovimientosAprobaciones;
+}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="mb-0">Solicitud #@Model.Id — JPN</h2>
+    <div class="d-flex gap-2">
+        @if (apro?.JpnStatus == ApprovalStatus.PENDING || apro?.JpnStatus == null)
+        {
+            // (Opcional) si quieres impedir acciones hasta que MNG apruebe:
+            if (apro?.MngStatus == ApprovalStatus.APPROVED)
+            {
+                <form asp-action="Approve" asp-controller="AprobacionesJpn" asp-route-id="@Model.Id" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button class="btn btn-success"><i class="fas fa-check me-1"></i> Aprobar</button>
+                </form>
+                <form asp-action="Reject" asp-controller="AprobacionesJpn" asp-route-id="@Model.Id" method="post" class="d-inline"
+                      onsubmit="return confirm('¿Rechazar la solicitud #@Model.Id?');">
+                    @Html.AntiForgeryToken()
+                    <button class="btn btn-danger"><i class="fas fa-times me-1"></i> Rechazar</button>
+                </form>
+            }
+            else
+            {
+                <span class="badge bg-secondary">Esperando aprobación de Manager</span>
+            }
+        }
+        else
+        {
+            <span class="badge @(apro?.JpnStatus == ApprovalStatus.APPROVED ? "bg-success" : apro?.JpnStatus == ApprovalStatus.REJECTED ? "bg-danger" : "bg-secondary")">
+                JPN: @apro?.Jpn ?? "-" — @apro?.JpnStatus — @apro?.JpnDate?.ToString("yyyy-MM-dd HH:mm")
+            </span>
+        }
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Fecha</dt>
+            <dd class="col-sm-9">@Model.Fecha.ToString("yyyy-MM-dd HH:mm")</dd>
+
+            <dt class="col-sm-3">Solicitante</dt>
+            <dd class="col-sm-9">@Model.Solicitante</dd>
+
+            <dt class="col-sm-3">Departamento</dt>
+            <dd class="col-sm-9">@Model.Departamento</dd>
+
+            <dt class="col-sm-3">Línea</dt>
+            <dd class="col-sm-9">@Model.Linea</dd>
+
+            <dt class="col-sm-3">Urgencia</dt>
+            <dd class="col-sm-9"><span class="@BadgeForUrgencia(Model.Urgencia)">@Model.Urgencia</span></dd>
+
+            <dt class="col-sm-3">Comentarios</dt>
+            <dd class="col-sm-9">@Model.Comentarios</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Items (@(Model.Items?.Count ?? 0))</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-sm mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>No.</th>
+                        <th>Núm. Parte</th>
+                        <th>Descripción</th>
+                        <th>Case</th>
+                        <th>CodMov</th>
+                        <th>Clase A</th>
+                        <th>Ubic A</th>
+                        <th>Cant A</th>
+                        <th>Estatus A</th>
+                        <th>Clase D</th>
+                        <th>Ubic D</th>
+                        <th>Cant D</th>
+                        <th>Estatus D</th>
+                        <th>Moneda</th>
+                        <th>Costo U</th>
+                        <th>Diferencia</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var it in Model.Items ?? new List<PcMovimientosItem>())
+                    {
+                        <tr>
+                            <td>@it.Numero</td>
+                            <td>@it.NumParte</td>
+                            <td>@it.Descripcion</td>
+                            <td>@it.Case</td>
+                            <td>@it.CodMov</td>
+                            <td>@it.ClaseA</td>
+                            <td>@it.UbicacionA</td>
+                            <td class="text-end">@it.CantidadA?.ToString("0.##")</td>
+                            <td>@it.EstatusA</td>
+                            <td>@it.ClaseD</td>
+                            <td>@it.UbicacionD</td>
+                            <td class="text-end">@it.CantidadD?.ToString("0.##")</td>
+                            <td>@it.EstatusD</td>
+                            <td>@it.Moneda</td>
+                            <td class="text-end">@it.CostoU?.ToString("0.##")</td>
+                            <td class="text-end">@it.Diferencia?.ToString("0.##")</td>
+                            <td class="text-end">@it.Total?.ToString("0.##")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string BadgeForUrgencia(Urgencia u) => u switch
+    {
+        Urgencia.Critica => "badge bg-danger",
+        Urgencia.Alta => "badge bg-warning text-dark",
+        Urgencia.Media => "badge bg-info text-dark",
+        _ => "badge bg-secondary"
+    };
+}

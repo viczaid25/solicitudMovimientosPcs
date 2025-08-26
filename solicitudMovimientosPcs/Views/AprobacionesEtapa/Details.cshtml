@@ -1,0 +1,224 @@
+﻿@model solicitudMovimientosPcs.Models.PcMovimientosRequest
+@using solicitudMovimientosPcs.Models
+@{
+    var stage = (string)ViewBag.Stage;
+    var apro = ViewBag.Aprob as PcMovimientosAprobaciones;
+    ViewData["Title"] = $"Detalle de Solicitud ({stage})";
+}
+
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="mb-0">Solicitud #@Model.Id — @stage</h2>
+    <div class="d-flex gap-2">
+        @if (IsStagePending(apro, stage))
+        {
+            if (EtapasPrevAprobadas(apro, stage))
+            {
+                <form asp-controller="AprobacionesEtapa" asp-action="APPROVED"
+                      asp-route-stage="@stage" asp-route-id="@Model.Id"
+                      method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button class="btn btn-success"><i class="fas fa-check me-1"></i> Aprobar</button>
+                </form>
+                <form asp-controller="AprobacionesEtapa" asp-action="REJECTED"
+                      asp-route-stage="@stage" asp-route-id="@Model.Id"
+                      method="post" class="d-inline"
+                      onsubmit="return confirm('¿Rechazar la solicitud #@Model.Id en @stage?');">
+                    @Html.AntiForgeryToken()
+                    <button class="btn btn-danger"><i class="fas fa-times me-1"></i> Rechazar</button>
+                </form>
+            }
+            else
+            {
+                <span class="badge bg-secondary">Esperando etapas previas</span>
+            }
+        }
+        else
+        {
+            <span class="badge @(EstadoBadge(apro, stage))">
+                @InfoEtapa(apro, stage)
+            </span>
+        }
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Fecha</dt>
+            <dd class="col-sm-9">@Model.Fecha.ToString("yyyy-MM-dd HH:mm")</dd>
+            <dt class="col-sm-3">Solicitante</dt>
+            <dd class="col-sm-9">@Model.Solicitante</dd>
+            <dt class="col-sm-3">Departamento</dt>
+            <dd class="col-sm-9">@Model.Departamento</dd>
+            <dt class="col-sm-3">Línea</dt>
+            <dd class="col-sm-9">@Model.Linea</dd>
+            <dt class="col-sm-3">Urgencia</dt>
+            <dd class="col-sm-9"><span class="@BadgeForUrgencia(Model.Urgencia)">@Model.Urgencia</span></dd>
+            <dt class="col-sm-3">Comentarios</dt>
+            <dd class="col-sm-9">@Model.Comentarios</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Items (@(Model.Items?.Count ?? 0))</div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-sm mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>No.</th>
+                        <th>Núm. Parte</th>
+                        <th>Descripción</th>
+                        <th>Case</th>
+                        <th>CodMov</th>
+                        <th>Clase A</th>
+                        <th>Ubic A</th>
+                        <th>Cant A</th>
+                        <th>Estatus A</th>
+                        <th>Clase D</th>
+                        <th>Ubic D</th>
+                        <th>Cant D</th>
+                        <th>Estatus D</th>
+                        <th>Moneda</th>
+                        <th>Costo U</th>
+                        <th>Diferencia</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var it in Model.Items ?? new List<PcMovimientosItem>())
+                    {
+                        <tr>
+                            <td>@it.Numero</td>
+                            <td>@it.NumParte</td>
+                            <td>@it.Descripcion</td>
+                            <td>@it.Case</td>
+                            <td>@it.CodMov</td>
+                            <td>@it.ClaseA</td>
+                            <td>@it.UbicacionA</td>
+                            <td class="text-end">@it.CantidadA?.ToString("0.##")</td>
+                            <td>@it.EstatusA</td>
+                            <td>@it.ClaseD</td>
+                            <td>@it.UbicacionD</td>
+                            <td class="text-end">@it.CantidadD?.ToString("0.##")</td>
+                            <td>@it.EstatusD</td>
+                            <td>@it.Moneda</td>
+                            <td class="text-end">@it.CostoU?.ToString("0.##")</td>
+                            <td class="text-end">@it.Diferencia?.ToString("0.##")</td>
+                            <td class="text-end">@it.Total?.ToString("0.##")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string BadgeForUrgencia(Urgencia u) => u switch
+    {
+        Urgencia.Critica => "badge bg-danger",
+        Urgencia.Alta => "badge bg-warning text-dark",
+        Urgencia.Media => "badge bg-info text-dark",
+        _ => "badge bg-secondary"
+    };
+
+    bool IsStagePending(PcMovimientosAprobaciones a, string st) => st switch
+    {
+        "MNG" => a?.MngStatus == ApprovalStatus.PENDING || a?.MngStatus == null,
+        "JPN" => a?.JpnStatus == ApprovalStatus.PENDING || a?.JpnStatus == null,
+        "MC" => a?.McStatus == ApprovalStatus.PENDING || a?.McStatus == null,
+        "PL" => a?.PlStatus == ApprovalStatus.PENDING || a?.PlStatus == null,
+        "PCMNG" => a?.PcMngStatus == ApprovalStatus.PENDING || a?.PcMngStatus == null,
+        "PCJPN" => a?.PcJpnStatus == ApprovalStatus.PENDING || a?.PcJpnStatus == null,
+        "FINMNG" => a?.FinMngStatus == ApprovalStatus.PENDING || a?.FinMngStatus == null,
+        "FINJPN" => a?.FinJpnStatus == ApprovalStatus.PENDING || a?.FinJpnStatus == null,
+        _ => false
+    };
+
+    bool EtapasPrevAprobadas(PcMovimientosAprobaciones a, string st)
+    {
+        string[] flow = new[] { "MNG", "JPN", "MC", "PL", "PCMNG", "PCJPN", "FINMNG", "FINJPN" };
+        int idx = Array.IndexOf(flow, st);
+        if (idx <= 0) return true;
+        for (int i = 0; i < idx; i++)
+        {
+            if (!EtapaAprobada(a, flow[i])) return false;
+        }
+        return true;
+    }
+
+    bool EtapaAprobada(PcMovimientosAprobaciones a, string st) => st switch
+    {
+        "MNG" => a?.MngStatus == ApprovalStatus.APPROVED,
+        "JPN" => a?.JpnStatus == ApprovalStatus.APPROVED,
+        "MC" => a?.McStatus == ApprovalStatus.APPROVED,
+        "PL" => a?.PlStatus == ApprovalStatus.APPROVED,
+        "PCMNG" => a?.PcMngStatus == ApprovalStatus.APPROVED,
+        "PCJPN" => a?.PcJpnStatus == ApprovalStatus.APPROVED,
+        "FINMNG" => a?.FinMngStatus == ApprovalStatus.APPROVED,
+        "FINJPN" => a?.FinJpnStatus == ApprovalStatus.APPROVED,
+        _ => false
+    };
+
+    string EstadoBadge(PcMovimientosAprobaciones a, string st)
+    {
+        var s = st switch
+        {
+            "MNG" => a?.MngStatus,
+            "JPN" => a?.JpnStatus,
+            "MC" => a?.McStatus,
+            "PL" => a?.PlStatus,
+            "PCMNG" => a?.PcMngStatus,
+            "PCJPN" => a?.PcJpnStatus,
+            "FINMNG" => a?.FinMngStatus,
+            "FINJPN" => a?.FinJpnStatus,
+            _ => null
+        };
+        return s == ApprovalStatus.APPROVED ? "bg-success"
+             : s == ApprovalStatus.REJECTED ? "bg-danger"
+             : "bg-secondary";
+    }
+
+    string InfoEtapa(PcMovimientosAprobaciones a, string st)
+    {
+        string? user = st switch
+        {
+            "MNG" => a?.Mng,
+            "JPN" => a?.Jpn,
+            "MC" => a?.Mc,
+            "PL" => a?.Pl,
+            "PCMNG" => a?.PcMng,
+            "PCJPN" => a?.PcJpn,
+            "FINMNG" => a?.FinMng,
+            "FINJPN" => a?.FinJpn,
+            _ => null
+        };
+        ApprovalStatus? status = st switch
+        {
+            "MNG" => a?.MngStatus,
+            "JPN" => a?.JpnStatus,
+            "MC" => a?.McStatus,
+            "PL" => a?.PlStatus,
+            "PCMNG" => a?.PcMngStatus,
+            "PCJPN" => a?.PcJpnStatus,
+            "FINMNG" => a?.FinMngStatus,
+            "FINJPN" => a?.FinJpnStatus,
+            _ => null
+        };
+        DateTime? date = st switch
+        {
+            "MNG" => a?.MngDate,
+            "JPN" => a?.JpnDate,
+            "MC" => a?.McDate,
+            "PL" => a?.PlDate,
+            "PCMNG" => a?.PcMngDate,
+            "PCJPN" => a?.PcJpnDate,
+            "FINMNG" => a?.FinMngDate,
+            "FINJPN" => a?.FinJpnDate,
+            _ => null
+        };
+        return $"{st}: {user ?? "-"} — {status} — {date?.ToString("yyyy-MM-dd HH:mm")}";
+    }
+}
