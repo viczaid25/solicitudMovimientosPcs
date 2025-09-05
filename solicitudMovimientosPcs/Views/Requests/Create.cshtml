@@ -72,9 +72,14 @@
 
             <div class="d-flex align-items-center justify-content-between mb-2">
                 <h5 class="mb-0"><i class="fas fa-boxes-stacked me-2"></i>Items</h5>
-                <button type="button" id="addItem" class="btn btn-outline-secondary btn-sm">
-                    <i class="fas fa-plus me-1"></i> Agregar item
-                </button>
+                <div class="d-flex gap-2">
+                    <button type="button" id="dupLast" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-copy me-1"></i> Duplicar última fila
+                    </button>
+                    <button type="button" id="addItem" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-plus me-1"></i> Agregar item
+                    </button>
+                </div>
             </div>
 
             <!-- Plantillas ocultas para clonar opciones en filas nuevas -->
@@ -234,77 +239,164 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        (function(){
-          let idx = @Model.Items.Count;
+        (function () {
+            let idx = @Model.Items.Count;
 
-          const tpl = {
-            clases: document.getElementById('tpl-clases').innerHTML,
-            ubics:  document.getElementById('tpl-ubicaciones').innerHTML,
-            cods:   document.getElementById('tpl-codmovs').innerHTML,
-            est:    document.getElementById('tpl-estatus').innerHTML,
-            mon:    document.getElementById('tpl-monedas').innerHTML
-          };
+            const tpl = {
+                clases: document.getElementById('tpl-clases').innerHTML,
+                ubics:  document.getElementById('tpl-ubicaciones').innerHTML,
+                cods:   document.getElementById('tpl-codmovs').innerHTML,
+                est:    document.getElementById('tpl-estatus').innerHTML,
+                mon:    document.getElementById('tpl-monedas').innerHTML
+            };
 
-          const tableBody = document.querySelector('#itemsTable tbody');
+            const tableBody = document.querySelector('#itemsTable tbody');
 
-          function toNum(v){ return parseFloat((v || '0').toString().replace(',', '.')) || 0 }
+            function toNum(v) { return parseFloat((v || '0').toString().replace(',', '.')) || 0 }
 
-          // Recalcula diferencia y total de una fila
-          function recalcRow(tr){
-            const qtyA = toNum(tr.querySelector('.qtyA')?.value);
-            const qtyD = toNum(tr.querySelector('.qtyD')?.value);
-            const cost = toNum(tr.querySelector('.costU')?.value);
+            function recalcRow(tr) {
+                const qtyA = toNum(tr.querySelector('.qtyA')?.value);
+                const qtyD = toNum(tr.querySelector('.qtyD')?.value);
+                const cost = toNum(tr.querySelector('.costU')?.value);
 
-            const diff = qtyD - qtyA;
-            const qtyBase = (qtyD || qtyA);
-            const total = cost * qtyBase;
+                const diff = qtyD - qtyA;
+                const qtyBase = (qtyD || qtyA);
+                const total = cost * qtyBase;
 
-            const diffInput = tr.querySelector('.diff');
-            const totalInput = tr.querySelector('.total');
-            if (diffInput)  diffInput.value  = diff.toFixed(2);
-            if (totalInput) totalInput.value = total.toFixed(2);
-          }
-
-          // Recalcular cuando cambian cantidades o costo
-          tableBody.addEventListener('input', function(e){
-            if (e.target.matches('.qtyA, .qtyD, .costU')) {
-              const tr = e.target.closest('tr');
-              recalcRow(tr);
+                const diffInput = tr.querySelector('.diff');
+                const totalInput = tr.querySelector('.total');
+                if (diffInput)  diffInput.value  = diff.toFixed(2);
+                if (totalInput) totalInput.value = total.toFixed(2);
             }
-          });
 
-          // Agregar nueva fila
-          document.getElementById('addItem').addEventListener('click', function(){
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td><input class="form-control" name="Items[${idx}].Numero" value="${idx+1}" /></td>
-              <td><input class="form-control" name="Items[${idx}].NumParte" /></td>
-              <td><input class="form-control" name="Items[${idx}].Descripcion" /></td>
-              <td><input class="form-control" name="Items[${idx}].Case" /></td>
+            // Siguiente valor para "Numero"
+            function nextNumero(prefill){
+                if (prefill && prefill.Numero){
+                    const n = parseInt(prefill.Numero, 10);
+                    return (isNaN(n) ? 0 : n) + 1;
+                }
+                const last = document.querySelector('#itemsTable tbody tr:last-child input[name$=".Numero"]');
+                const ln = last ? parseInt(last.value, 10) : 0;
+                return (isNaN(ln) ? 0 : ln) + 1;
+            }
 
-              <td><select class="form-select" name="Items[${idx}].CodMov">${tpl.cods}</select></td>
+            // --- Helpers para crear/llenar filas ---
+            function addRow(prefill) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                  <td><input class="form-control" name="Items[${idx}].Numero" type="number" value="${nextNumero(prefill)}" /></td>
+                  <td><input class="form-control" name="Items[${idx}].NumParte" /></td>
+                  <td><input class="form-control" name="Items[${idx}].Descripcion" /></td>
+                  <td><input class="form-control" name="Items[${idx}].Case" /></td>
 
-              <td><select class="form-select" name="Items[${idx}].ClaseA">${tpl.clases}</select></td>
-              <td><select class="form-select" name="Items[${idx}].UbicacionA">${tpl.ubics}</select></td>
-              <td><input class="form-control qtyA" name="Items[${idx}].CantidadA" type="number" step="0.01" /></td>
-              <td><select class="form-select" name="Items[${idx}].EstatusA">${tpl.est}</select></td>
+                  <td><select class="form-select" name="Items[${idx}].CodMov">${tpl.cods}</select></td>
 
-              <td><select class="form-select" name="Items[${idx}].ClaseD">${tpl.clases}</select></td>
-              <td><select class="form-select" name="Items[${idx}].UbicacionD">${tpl.ubics}</select></td>
-              <td><input class="form-control qtyD" name="Items[${idx}].CantidadD" type="number" step="0.01" /></td>
-              <td><select class="form-select" name="Items[${idx}].EstatusD">${tpl.est}</select></td>
+                  <!-- AHORA -->
+                  <td><select class="form-select" name="Items[${idx}].ClaseA">${tpl.clases}</select></td>
+                  <td><select class="form-select" name="Items[${idx}].UbicacionA">${tpl.ubics}</select></td>
+                  <td><input class="form-control qtyA" name="Items[${idx}].CantidadA" type="number" step="0.01" /></td>
+                  <td><select class="form-select" name="Items[${idx}].EstatusA">${tpl.est}</select></td>
 
-              <td><select class="form-select" name="Items[${idx}].Moneda">${tpl.mon}</select></td>
-              <td><input class="form-control costU" name="Items[${idx}].CostoU" type="number" step="0.01" /></td>
-              <td><input class="form-control diff"  name="Items[${idx}].Diferencia" type="number" step="0.01" readonly /></td>
-              <td><input class="form-control total" name="Items[${idx}].Total"      type="number" step="0.01" readonly /></td>
-            `;
-            tableBody.appendChild(tr);
-            idx++;
-          });
+                  <!-- DESPUÉS -->
+                  <td><select class="form-select" name="Items[${idx}].ClaseD">${tpl.clases}</select></td>
+                  <td><select class="form-select" name="Items[${idx}].UbicacionD">${tpl.ubics}</select></td>
+                  <td><input class="form-control qtyD" name="Items[${idx}].CantidadD" type="number" step="0.01" /></td>
+                  <td><select class="form-select" name="Items[${idx}].EstatusD">${tpl.est}</select></td>
 
-          // Recalcular filas iniciales por si vinieran con datos
-          document.querySelectorAll('#itemsTable tbody tr').forEach(recalcRow);
+                  <td><select class="form-select" name="Items[${idx}].Moneda">${tpl.mon}</select></td>
+                  <td><input class="form-control costU" name="Items[${idx}].CostoU" type="number" step="0.01" /></td>
+                  <td><input class="form-control diff"  name="Items[${idx}].Diferencia" type="number" step="0.01" readonly /></td>
+                  <td><input class="form-control total" name="Items[${idx}].Total"      type="number" step="0.01" readonly /></td>
+                `;
+                tableBody.appendChild(tr);
+
+                // Si hay prefill, setea los demás valores idénticos a la fila anterior (Número ya se incrementó)
+                if (prefill) {
+                    setVal(tr, 'NumParte',    prefill.NumParte);
+                    setVal(tr, 'Descripcion', prefill.Descripcion);
+                    setVal(tr, 'Case',        prefill.Case);
+
+                    setSel(tr, 'CodMov',      prefill.CodMov);
+
+                    setSel(tr, 'ClaseA',      prefill.ClaseA);
+                    setSel(tr, 'UbicacionA',  prefill.UbicacionA);
+                    setVal(tr, 'CantidadA',   prefill.CantidadA);
+                    setSel(tr, 'EstatusA',    prefill.EstatusA);
+
+                    setSel(tr, 'ClaseD',      prefill.ClaseD);
+                    setSel(tr, 'UbicacionD',  prefill.UbicacionD);
+                    setVal(tr, 'CantidadD',   prefill.CantidadD);
+                    setSel(tr, 'EstatusD',    prefill.EstatusD);
+
+                    setSel(tr, 'Moneda',      prefill.Moneda);
+                    setVal(tr, 'CostoU',      prefill.CostoU);
+                    setVal(tr, 'Diferencia',  prefill.Diferencia);
+                    setVal(tr, 'Total',       prefill.Total);
+                }
+
+                recalcRow(tr);
+                idx++;
+                return tr;
+            }
+
+            function setVal(tr, field, value) {
+                const el = tr.querySelector(`[name="Items[${idx}].${field}"]`);
+                if (el) el.value = value ?? '';
+            }
+            function setSel(tr, field, value) {
+                const el = tr.querySelector(`select[name="Items[${idx}].${field}"]`);
+                if (el) el.value = value ?? '';
+            }
+
+            function getRowData(tr) {
+                const val = n => tr.querySelector(`[name$="].${n}"]`)?.value ?? '';
+                return {
+                    Numero:     val('Numero'),
+                    NumParte:   val('NumParte'),
+                    Descripcion:val('Descripcion'),
+                    Case:       val('Case'),
+                    CodMov:     val('CodMov'),
+
+                    ClaseA:     val('ClaseA'),
+                    UbicacionA: val('UbicacionA'),
+                    CantidadA:  val('CantidadA'),
+                    EstatusA:   val('EstatusA'),
+
+                    ClaseD:     val('ClaseD'),
+                    UbicacionD: val('UbicacionD'),
+                    CantidadD:  val('CantidadD'),
+                    EstatusD:   val('EstatusD'),
+
+                    Moneda:     val('Moneda'),
+                    CostoU:     val('CostoU'),
+                    Diferencia: val('Diferencia'),
+                    Total:      val('Total')
+                };
+            }
+
+            // Recalcular cuando cambian cantidades o costo
+            tableBody.addEventListener('input', function (e) {
+                if (e.target.matches('.qtyA, .qtyD, .costU')) {
+                    const tr = e.target.closest('tr');
+                    recalcRow(tr);
+                }
+            });
+
+            // Agregar fila vacía (con Número correlativo)
+            document.getElementById('addItem').addEventListener('click', function () {
+                addRow(); // sin prefill → nextNumero(null) define el siguiente número
+            });
+
+            // Duplicar última fila (y Número incrementa)
+            document.getElementById('dupLast').addEventListener('click', function () {
+                const last = tableBody.querySelector('tr:last-child');
+                if (!last) { addRow(); return; }
+                const data = getRowData(last);
+                addRow(data); // nueva fila con mismos valores, Número incrementado
+            });
+
+            // Recalcular filas iniciales por si vinieran con datos
+            document.querySelectorAll('#itemsTable tbody tr').forEach(recalcRow);
         })();
     </script>
 }

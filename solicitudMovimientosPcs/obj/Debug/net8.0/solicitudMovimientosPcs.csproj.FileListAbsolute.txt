@@ -181,3 +181,4 @@ C:\Users\dm45207\source\repos\solicitudMovimientosPcs\solicitudMovimientosPcs\ob
 C:\Users\dm45207\source\repos\solicitudMovimientosPcs\solicitudMovimientosPcs\obj\Debug\net8.0\solicitudMovimientosPcs.pdb
 C:\Users\dm45207\source\repos\solicitudMovimientosPcs\solicitudMovimientosPcs\obj\Debug\net8.0\solicitudMovimientosPcs.genruntimeconfig.cache
 C:\Users\dm45207\source\repos\solicitudMovimientosPcs\solicitudMovimientosPcs\obj\Debug\net8.0\ref\solicitudMovimientosPcs.dll
+C:\Users\dm45207\source\repos\solicitudMovimientosPcs\solicitudMovimientosPcs\obj\Debug\net8.0\solicitudMovimientosPcs.sourcelink.json
