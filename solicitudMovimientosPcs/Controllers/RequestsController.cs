@@ -186,5 +186,7 @@ namespace solicitudMovimientosPcs.Controllers
             ViewBag.Solicitante = who;
             return View(list);
         }
+
+
     }
 }

@@ -39,6 +39,21 @@ namespace solicitudMovimientosPcs.Models
         [Column("REQUEST_STATUS")]
         public RequestStatus RequestStatus { get; set; }
 
+        [MaxLength(50)]
+        [Column("PC_FOLIO")]
+        public string? PcFolio { get; set; }
+
+        [MaxLength(260)]
+        [Column("PC_DOC_PATH")]
+        public string? PcDocumentoPath { get; set; }
+
+        [MaxLength(100)]
+        [Column("PC_FINALIZADO_POR")]
+        public string? PcFinalizadoPor { get; set; }
+        
+        [Column("PC_FINAL_DATE")]
+        public DateTime? PcFinalDate { get; set; }
+
         // Relaciones
         public List<PcMovimientosItem> Items { get; set; } = new();
 

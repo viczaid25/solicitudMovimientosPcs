@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -8,8 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Controllers\AprobacionesController.bak" />
-    <Compile Include="Controllers\AprobacionesJpnController.bak" />
+    <Compile Remove="Models\NewFolder\**" />
+    <Content Remove="Models\NewFolder\**" />
+    <EmbeddedResource Remove="Models\NewFolder\**" />
+    <None Remove="Models\NewFolder\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,6 +29,11 @@
 
   <ItemGroup>
     <Folder Include="Data\Migrations\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Controllers\AprobacionesController.cs" />
+    <None Include="Controllers\AprobacionesJpnController.cs" />
   </ItemGroup>
 
 </Project>

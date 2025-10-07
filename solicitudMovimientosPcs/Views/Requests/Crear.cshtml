@@ -1,0 +1,358 @@
+﻿@model solicitudMovimientosPcs.Models.PcMovimientosRequest
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "Nueva Solicitud (Demo)";
+
+    var clases = ViewBag.Clases as IEnumerable<SelectListItem>;
+    var ubicaciones = ViewBag.Ubicaciones as IEnumerable<SelectListItem>;
+    var codMovs = ViewBag.CodMovs as IEnumerable<SelectListItem>;
+    var estatus = ViewBag.Estatus as IEnumerable<SelectListItem>;
+    var monedas = ViewBag.Monedas as IEnumerable<SelectListItem>;
+    var lineas = ViewBag.Lineas as IEnumerable<SelectListItem>;
+
+    var solicitanteActual = !string.IsNullOrWhiteSpace(Model?.Solicitante)
+        ? Model.Solicitante
+        : (User.FindFirst("DisplayName")?.Value ?? User.Identity?.Name ?? "");
+}
+
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white d-flex align-items-center justify-content-between">
+        <h4 class="mb-0"><i class="fas fa-eye me-2"></i> Nueva Solicitud (Solo Vista)</h4>
+        <span class="badge bg-warning text-dark">DEMO — no guarda</span>
+    </div>
+    <div class="card-body">
+
+        <!-- Muestra validaciones, pero no habrá submit -->
+        <div asp-validation-summary="All" class="alert alert-info" role="alert">
+            Esta es una vista de comparación de diseño. No se enviarán datos.
+        </div>
+
+        <!-- Formulario en modo demo: no hace submit -->
+        <form onsubmit="return false;">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label asp-for="Fecha" class="form-label">Fecha</label>
+                    <input asp-for="Fecha" class="form-control" type="date" />
+                    <span asp-validation-for="Fecha" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Solicitante</label>
+                    <input class="form-control" value="@solicitanteActual" readonly />
+                    <input type="hidden" name="Solicitante" value="@solicitanteActual" />
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="Departamento" class="form-label">Departamento</label>
+                    <input asp-for="Departamento" class="form-control" />
+                    <span asp-validation-for="Departamento" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="Linea" class="form-label">Línea</label>
+                    <select asp-for="Linea" class="form-select" asp-items="lineas">
+                        <option value="">-- Selecciona --</option>
+                    </select>
+                    <span asp-validation-for="Linea" class="text-danger"></span>
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="Comentarios" class="form-label">Comentarios</label>
+                    <textarea asp-for="Comentarios" class="form-control" rows="2"></textarea>
+                </div>
+
+                <div class="col-md-3">
+                    <label asp-for="Urgencia" class="form-label">Urgencia</label>
+                    <select asp-for="Urgencia" class="form-select" asp-items="Html.GetEnumSelectList<Urgencia>()"></select>
+                    <span asp-validation-for="Urgencia" class="text-danger"></span>
+                </div>
+            </div>
+
+            <hr class="my-4" />
+
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <h5 class="mb-0"><i class="fas fa-boxes-stacked me-2"></i>Items</h5>
+                <div class="d-flex gap-2">
+                    <button type="button" id="dupLast" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-copy me-1"></i> Duplicar última fila
+                    </button>
+                    <button type="button" id="addItem" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-plus me-1"></i> Agregar item
+                    </button>
+                </div>
+            </div>
+
+            <!-- Plantillas ocultas -->
+            <select id="tpl-clases" class="d-none">
+                <option value=""></option>
+                @if (clases != null)
+                {
+                    foreach (var o in clases)
+                    {
+                        <option value="@o.Value">@o.Text</option>
+                    }
+                }
+            </select>
+            <select id="tpl-ubicaciones" class="d-none">
+                <option value=""></option>
+                @if (ubicaciones != null)
+                {
+                    foreach (var o in ubicaciones)
+                    {
+                        <option value="@o.Value">@o.Text</option>
+                    }
+                }
+            </select>
+            <select id="tpl-codmovs" class="d-none">
+                <option value=""></option>
+                @if (codMovs != null)
+                {
+                    foreach (var o in codMovs)
+                    {
+                        <option value="@o.Value">@o.Text</option>
+                    }
+                }
+            </select>
+            <select id="tpl-estatus" class="d-none">
+                <option value=""></option>
+                @if (estatus != null)
+                {
+                    foreach (var o in estatus)
+                    {
+                        <option value="@o.Value">@o.Text</option>
+                    }
+                }
+            </select>
+            <select id="tpl-monedas" class="d-none">
+                <option value=""></option>
+                @if (monedas != null)
+                {
+                    foreach (var o in monedas)
+                    {
+                        <option value="@o.Value">@o.Text</option>
+                    }
+                }
+            </select>
+
+            <!-- Tabla con 4 secciones en una sola fila -->
+            <div class="table-responsive h-scroll">
+                <table class="table table-sm align-middle table-nowrap table-wide" id="itemsTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th colspan="9" class="text-center">Información actual del material PCS</th>
+                            <th colspan="4" class="text-center">Modificación de PCS Solicitada</th>
+                            <th colspan="1" class="text-center">Diferencia</th>
+                            <th colspan="3" class="text-center">Costos</th>
+                        </tr>
+                        <tr>
+                            <th style="min-width:70px">No.</th>
+                            <th style="min-width:140px">Núm. Parte</th>
+                            <th style="min-width:220px">Descripción</th>
+                            <th style="min-width:240px">CodMov</th>
+                            <th style="min-width:120px">Case</th>
+                            <th style="min-width:160px">Ubic A (libre)</th>
+                            <th style="min-width:140px">Estatus A</th>
+                            <th style="min-width:120px">Clase A</th>
+                            <th style="min-width:110px">Cant A</th>
+                            <th style="min-width:140px">Estatus D</th>
+                            <th style="min-width:160px">Ubic D</th>
+                            <th style="min-width:120px">Clase D</th>
+                            <th style="min-width:110px">Cant D</th>
+                            <th style="min-width:120px">Diferencia</th>
+                            <th style="min-width:120px">Moneda</th>
+                            <th style="min-width:130px">Costo U</th>
+                            <th style="min-width:140px">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.Items.Count; i++)
+                        {
+                            <tr>
+                                <td><input class="form-control" asp-for="Items[@i].Numero" type="number" /></td>
+                                <td><input class="form-control" asp-for="Items[@i].NumParte" /></td>
+                                <td><input class="form-control" asp-for="Items[@i].Descripcion" /></td>
+                                <td>
+                                    <select class="form-select" asp-for="Items[@i].CodMov" asp-items="codMovs">
+                                        <option value=""></option>
+                                    </select>
+                                </td>
+                                <td><input class="form-control" asp-for="Items[@i].Case" /></td>
+                                <td><input class="form-control" asp-for="Items[@i].UbicacionA" /></td>
+                                <td>
+                                    <select class="form-select" asp-for="Items[@i].EstatusA" asp-items="estatus">
+                                        <option value=""></option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select class="form-select" asp-for="Items[@i].ClaseA" asp-items="clases">
+                                        <option value=""></option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input class="form-control qtyA no-spinners" asp-for="Items[@i].CantidadA"
+                                           type="number" step="1" inputmode="numeric" pattern="[0-9]*" />
+                                </td>
+
+                                <td>
+                                    <select class="form-select" asp-for="Items[@i].EstatusD" asp-items="estatus">
+                                        <option value=""></option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select class="form-select" asp-for="Items[@i].UbicacionD" asp-items="ubicaciones">
+                                        <option value=""></option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <select class="form-select" asp-for="Items[@i].ClaseD" asp-items="clases">
+                                        <option value=""></option>
+                                    </select>
+                                </td>
+                                <td>
+                                    <input class="form-control qtyD no-spinners" asp-for="Items[@i].CantidadD"
+                                           type="number" step="1" inputmode="numeric" pattern="[0-9]*" />
+                                </td>
+
+                                <td><input class="form-control diff" asp-for="Items[@i].Diferencia" type="number" step="0.01" readonly /></td>
+                                <td>
+                                    <select class="form-select" asp-for="Items[@i].Moneda" asp-items="monedas">
+                                        <option value=""></option>
+                                    </select>
+                                </td>
+                                <td><input class="form-control costU" asp-for="Items[@i].CostoU" type="number" step="0.01" /></td>
+                                <td><input class="form-control total" asp-for="Items[@i].Total" type="number" step="0.01" readonly /></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="text-end mt-3">
+                <button type="button" class="btn btn-secondary" disabled>
+                    <i class="fas fa-ban me-1"></i> Demo (no guarda)
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .table-nowrap th, .table-nowrap td {
+            white-space: nowrap;
+        }
+
+        .table-wide {
+            min-width: 2400px;
+        }
+
+        .no-spinners::-webkit-outer-spin-button,
+        .no-spinners::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .no-spinners {
+            -moz-appearance: textfield;
+        }
+    </style>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Igual que la vista funcional: permite agregar/duplicar filas para ver el layout.
+        (function () {
+            let idx = @Model.Items.Count;
+
+            const tpl = {
+                clases: document.getElementById('tpl-clases').innerHTML,
+                ubics:  document.getElementById('tpl-ubicaciones').innerHTML,
+                cods:   document.getElementById('tpl-codmovs').innerHTML,
+                est:    document.getElementById('tpl-estatus').innerHTML,
+                mon:    document.getElementById('tpl-monedas').innerHTML
+            };
+
+            const tableBody = document.querySelector('#itemsTable tbody');
+            function toNum(v) { return parseFloat((v || '0').toString().replace(',', '.')) || 0 }
+            function recalcRow(tr) {
+                const qtyA = toNum(tr.querySelector('.qtyA')?.value);
+                const qtyD = toNum(tr.querySelector('.qtyD')?.value);
+                const cost = toNum(tr.querySelector('.costU')?.value);
+                const diff = qtyD - qtyA;
+                const qtyBase = (qtyD || qtyA);
+                const total = cost * qtyBase;
+                const diffInput = tr.querySelector('.diff');
+                const totalInput = tr.querySelector('.total');
+                if (diffInput)  diffInput.value  = diff.toFixed(2);
+                if (totalInput) totalInput.value = total.toFixed(2);
+            }
+            function nextNumero(prefill){
+                if (prefill && prefill.Numero){
+                    const n = parseInt(prefill.Numero, 10);
+                    return (isNaN(n) ? 0 : n) + 1;
+                }
+                const last = document.querySelector('#itemsTable tbody tr:last-child input[name$=".Numero"]');
+                const ln = last ? parseInt(last.value, 10) : 0;
+                return (isNaN(ln) ? 0 : ln) + 1;
+            }
+            function addRow(prefill) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><input class="form-control" name="Items[${idx}].Numero" type="number" value="${nextNumero(prefill)}" /></td>
+                    <td><input class="form-control" name="Items[${idx}].NumParte" /></td>
+                    <td><input class="form-control" name="Items[${idx}].Descripcion" /></td>
+                    <td><select class="form-select" name="Items[${idx}].CodMov">${tpl.cods}</select></td>
+                    <td><input class="form-control" name="Items[${idx}].Case" /></td>
+                    <td><input class="form-control" name="Items[${idx}].UbicacionA" /></td>
+                    <td><select class="form-select" name="Items[${idx}].EstatusA">${tpl.est}</select></td>
+                    <td><select class="form-select" name="Items[${idx}].ClaseA">${tpl.clases}</select></td>
+                    <td><input class="form-control qtyA no-spinners" name="Items[${idx}].CantidadA" type="number" step="1" inputmode="numeric" pattern="[0-9]*" /></td>
+                    <td><select class="form-select" name="Items[${idx}].EstatusD">${tpl.est}</select></td>
+                    <td><select class="form-select" name="Items[${idx}].UbicacionD">${tpl.ubics}</select></td>
+                    <td><select class="form-select" name="Items[${idx}].ClaseD">${tpl.clases}</select></td>
+                    <td><input class="form-control qtyD no-spinners" name="Items[${idx}].CantidadD" type="number" step="1" inputmode="numeric" pattern="[0-9]*" /></td>
+                    <td><input class="form-control diff"  name="Items[${idx}].Diferencia" type="number" step="0.01" readonly /></td>
+                    <td><select class="form-select" name="Items[${idx}].Moneda">${tpl.mon}</select></td>
+                    <td><input class="form-control costU" name="Items[${idx}].CostoU" type="number" step="0.01" /></td>
+                    <td><input class="form-control total" name="Items[${idx}].Total"      type="number" step="0.01" readonly /></td>
+                `;
+                tableBody.appendChild(tr);
+                if (prefill) {
+                    const setVal = (f,v)=>{ const el=tr.querySelector(`[name="Items[${idx}].${f}"]`); if(el) el.value=v??''; };
+                    const setSel = (f,v)=>{ const el=tr.querySelector(`select[name="Items[${idx}].${f}"]`); if(el) el.value=v??''; };
+                    setVal('NumParte', prefill.NumParte); setVal('Descripcion', prefill.Descripcion);
+                    setSel('CodMov', prefill.CodMov); setVal('Case', prefill.Case);
+                    setVal('UbicacionA', prefill.UbicacionA); setSel('EstatusA', prefill.EstatusA);
+                    setSel('ClaseA', prefill.ClaseA); setVal('CantidadA', prefill.CantidadA);
+                    setSel('EstatusD', prefill.EstatusD); setSel('UbicacionD', prefill.UbicacionD);
+                    setSel('ClaseD', prefill.ClaseD); setVal('CantidadD', prefill.CantidadD);
+                    setVal('Diferencia', prefill.Diferencia); setSel('Moneda', prefill.Moneda);
+                    setVal('CostoU', prefill.CostoU); setVal('Total', prefill.Total);
+                }
+                recalcRow(tr); idx++; return tr;
+            }
+            function getRowData(tr) {
+                const val = n => tr.querySelector(`[name$="].${n}"]`)?.value ?? '';
+                return {
+                    Numero: val('Numero'), NumParte: val('NumParte'), Descripcion: val('Descripcion'),
+                    CodMov: val('CodMov'), Case: val('Case'), UbicacionA: val('UbicacionA'),
+                    EstatusA: val('EstatusA'), ClaseA: val('ClaseA'), CantidadA: val('CantidadA'),
+                    EstatusD: val('EstatusD'), UbicacionD: val('UbicacionD'), ClaseD: val('ClaseD'), CantidadD: val('CantidadD'),
+                    Diferencia: val('Diferencia'), Moneda: val('Moneda'), CostoU: val('CostoU'), Total: val('Total')
+                };
+            }
+            tableBody.addEventListener('input', e => {
+                if (e.target.matches('.qtyA, .qtyD, .costU')) recalcRow(e.target.closest('tr'));
+            });
+            document.getElementById('addItem').addEventListener('click', () => addRow());
+            document.getElementById('dupLast').addEventListener('click', () => {
+                const last = tableBody.querySelector('tr:last-child');
+                if (!last) { addRow(); return; }
+                addRow(getRowData(last));
+            });
+            document.querySelectorAll('#itemsTable tbody tr').forEach(recalcRow);
+        })();
+    </script>
+}

@@ -15,6 +15,7 @@ namespace solicitudMovimientosPcs.Data
         public DbSet<PcMovimientosItem> PcMovimientosItems { get; set; } = default!;
         public DbSet<PcMovimientosAprobaciones> PcMovimientosAprobaciones { get; set; } = default!;
 
+
         // --- Catálogos ---
         public DbSet<PcMovimientosClase> PcMovimientosClases { get; set; } = default!;
         public DbSet<PcMovimientosCodigoLinea> PcMovimientosCodigoLineas { get; set; } = default!;
@@ -40,6 +41,14 @@ namespace solicitudMovimientosPcs.Data
                 e.Property(p => p.Departamento).HasMaxLength(100).IsRequired();
                 e.Property(p => p.Linea).HasMaxLength(100).IsRequired();
                 e.Property(p => p.Comentarios).HasMaxLength(300);
+
+                e.Property(p => p.Fecha).HasColumnType("date");
+
+                e.Property(p => p.PcFolio).HasMaxLength(50);
+                e.Property(p => p.PcDocumentoPath).HasMaxLength(260);
+
+                e.Property(p => p.PcFinalizadoPor).HasMaxLength(100);
+                e.Property(p => p.PcFinalDate);
 
                 // Enums como VARCHAR (string)
                 e.Property(p => p.Urgencia)

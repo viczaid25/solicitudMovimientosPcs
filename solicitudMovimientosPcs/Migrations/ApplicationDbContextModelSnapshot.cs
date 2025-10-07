@@ -291,6 +291,7 @@ namespace solicitudMovimientosPcs.Migrations
                         .HasColumnName("CLASE_D");
 
                     b.Property<string>("CodMov")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)")
                         .HasColumnName("COD_MOV");
@@ -380,7 +381,7 @@ namespace solicitudMovimientosPcs.Migrations
                         .HasColumnName("DEPARTAMENTO");
 
                     b.Property<DateTime>("Fecha")
-                        .HasColumnType("datetime2")
+                        .HasColumnType("date")
                         .HasColumnName("FECHA");
 
                     b.Property<string>("Linea")
@@ -388,6 +389,25 @@ namespace solicitudMovimientosPcs.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)")
                         .HasColumnName("LINEA");
+
+                    b.Property<string>("PcDocumentoPath")
+                        .HasMaxLength(260)
+                        .HasColumnType("nvarchar(260)")
+                        .HasColumnName("PC_DOC_PATH");
+
+                    b.Property<DateTime?>("PcFinalDate")
+                        .HasColumnType("datetime2")
+                        .HasColumnName("PC_FINAL_DATE");
+
+                    b.Property<string>("PcFinalizadoPor")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("PC_FINALIZADO_POR");
+
+                    b.Property<string>("PcFolio")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("PC_FOLIO");
 
                     b.Property<string>("RequestStatus")
                         .IsRequired()

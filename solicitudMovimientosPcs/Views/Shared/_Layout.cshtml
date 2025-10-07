@@ -49,105 +49,8 @@
     </header>
 
     <!-- Barra Lateral -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-menu p-2">
-            <ul class="nav flex-column">
-                <li class="nav-item">
-                    <a class="nav-link text-white" asp-controller="Home" asp-action="Index">
-                        <i class="fas fa-home me-2"></i> Inicio
-                    </a>
-                </li>
+    @await Html.PartialAsync("_Sidebar")
 
-                <li class="nav-item mt-2">
-                    <div class="text-white-50 small text-uppercase px-2">Solicitudes</div>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" asp-controller="Requests" asp-action="Create">
-                        <i class="fas fa-plus-circle me-2"></i> Nueva Solicitud
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" asp-controller="Requests" asp-action="My">
-                        <i class="fas fa-list me-2"></i> Mis Solicitudes
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" asp-controller="Requests" asp-action="Index">
-                        <i class="fas fa-table me-2"></i> Todas (Tabla)
-                    </a>
-                </li>
-
-                <li class="nav-item mt-2">
-                    <div class="text-white-50 small text-uppercase px-2">Aprobaciones</div>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" asp-controller="Aprobaciones" asp-action="Index">
-                        <i class="fas fa-check-double me-2"></i> Bandeja de Aprobación
-                    </a>
-                </li>
-
-
-                <li class="nav-item"><a class="nav-link text-white" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="MNG"><i class="fas fa-clipboard-check me-2"></i> MNG</a></li>
-                <li class="nav-item"><a class="nav-link text-white" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="JPN"><i class="fas fa-clipboard-check me-2"></i> JPN</a></li>
-                <li class="nav-item"><a class="nav-link text-white" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="MC"><i class="fas fa-clipboard-check me-2"></i> MC</a></li>
-                <li class="nav-item"><a class="nav-link text-white" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="PL"><i class="fas fa-clipboard-check me-2"></i> PL</a></li>
-                <li class="nav-item"><a class="nav-link text-white" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="PCMNG"><i class="fas fa-clipboard-check me-2"></i> PC MNG</a></li>
-                <li class="nav-item"><a class="nav-link text-white" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="PCJPN"><i class="fas fa-clipboard-check me-2"></i> PC JPN</a></li>
-                <li class="nav-item"><a class="nav-link text-white" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="FINMNG"><i class="fas fa-clipboard-check me-2"></i> FIN MNG</a></li>
-                <li class="nav-item"><a class="nav-link text-white" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="FINJPN"><i class="fas fa-clipboard-check me-2"></i> FIN JPN</a></li>
-
-
-
-                <li class="nav-item mt-2">
-                    <div class="text-white-50 small text-uppercase px-2">Catálogos</div>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" asp-controller="Catalogos" asp-action="Clases">
-                        <i class="fas fa-tags me-2"></i> Clases
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" asp-controller="Catalogos" asp-action="Lineas">
-                        <i class="fas fa-code-branch me-2"></i> Líneas/Áreas
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" asp-controller="Catalogos" asp-action="Codigos">
-                        <i class="fas fa-qrcode me-2"></i> Códigos
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" asp-controller="Catalogos" asp-action="Movimientos">
-                        <i class="fas fa-exchange-alt me-2"></i> Cod. Movimiento
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-white" asp-controller="Catalogos" asp-action="Ubicaciones">
-                        <i class="fas fa-map-marker-alt me-2"></i> Ubicaciones
-                    </a>
-                </li>
-            </ul>
-        </div>
-
-        <div class="sidebar-footer p-2">
-            @if (User.Identity?.IsAuthenticated ?? false)
-            {
-                <div class="user-info text-white-50 mb-2">
-                    <i class="fas fa-user-circle me-2"></i>
-                    <span>@(User.FindFirst("DisplayName")?.Value ?? User.Identity?.Name)</span>
-                </div>
-                <a class="btn btn-sm btn-outline-light w-100" asp-controller="Account" asp-action="Logout">
-                    <i class="fas fa-sign-out-alt me-1"></i> Cerrar sesión
-                </a>
-            }
-            else
-            {
-                <a class="btn btn-sm btn-primary w-100" asp-controller="Account" asp-action="Login">
-                    <i class="fas fa-sign-in-alt me-1"></i> Iniciar sesión
-                </a>
-            }
-        </div>
-    </aside>
 
     <!-- Contenido Principal -->
     <main class="content-wrapper">
@@ -207,6 +110,15 @@
                     document.removeEventListener('click', closeSidebarOnClickOutside);
                 }
             }
+        })();
+
+              (function(){
+          document.querySelectorAll('.sidebar .section-toggle').forEach(function(tg){
+            const target = document.querySelector(tg.getAttribute('href'));
+            if (target && target.querySelector('.nav-link.active')){
+              tg.classList.add('is-parent-active');
+            }
+          });
         })();
     </script>
 

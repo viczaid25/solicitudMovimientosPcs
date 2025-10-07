@@ -1,0 +1,56 @@
+﻿@model IEnumerable<solicitudMovimientosPcs.Models.PcMovimientosRequest>
+@{
+    ViewData["Title"] = "Finalización PC";
+}
+
+<h2 class="mb-3">Finalización PC</h2>
+
+@if (TempData["Ok"] != null)
+{
+    <div class="alert alert-success">@TempData["Ok"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">No hay solicitudes listas para finalizar.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID</th>
+                    <th>Fecha</th>
+                    <th>Solicitante</th>
+                    <th>Departamento</th>
+                    <th>Línea</th>
+                    <th>Folio PC</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model)
+                {
+                    <tr>
+                        <td>@r.Id</td>
+                        <td>@r.Fecha.ToString("yyyy-MM-dd")</td>
+                        <td>@r.Solicitante</td>
+                        <td>@r.Departamento</td>
+                        <td>@r.Linea</td>
+                        <td>@(string.IsNullOrWhiteSpace(r.PcFolio) ? "-" : r.PcFolio)</td>
+                        <td class="text-end">
+                            <a asp-action="Finalizar" asp-route-id="@r.Id" class="btn btn-sm btn-primary">
+                                <i class="fas fa-clipboard-check me-1"></i> Finalizar
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

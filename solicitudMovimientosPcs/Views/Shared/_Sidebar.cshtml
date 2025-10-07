@@ -1,0 +1,125 @@
+﻿@{
+    string ctrl = (ViewContext.RouteData.Values["controller"] as string) ?? "";
+    string action = (ViewContext.RouteData.Values["action"] as string) ?? "";
+
+    bool inSolicitudes = ctrl.Equals("Requests", StringComparison.OrdinalIgnoreCase);
+    bool inAprobaciones = ctrl.Equals("Aprobaciones", StringComparison.OrdinalIgnoreCase) || ctrl.Equals("AprobacionesEtapa", StringComparison.OrdinalIgnoreCase);
+    bool inCatalogos = ctrl.Equals("Catalogos", StringComparison.OrdinalIgnoreCase);
+
+    string Show(string group) => group switch
+    {
+        "Solicitudes" => inSolicitudes ? "show" : "",
+        "Aprobaciones" => inAprobaciones ? "show" : "",
+        "Catalogos" => inCatalogos ? "show" : "",
+        _ => ""
+    };
+    string Active(string c, string? a = null)
+    {
+        bool m = ctrl.Equals(c, StringComparison.OrdinalIgnoreCase)
+                 && (a == null || action.Equals(a, StringComparison.OrdinalIgnoreCase));
+        return m ? "active" : "";
+    }
+}
+
+<aside class="sidebar" id="sidebar">
+    <nav id="sidebarAccordion" class="sidebar-menu p-2">
+        <ul class="nav flex-column">
+
+            <!-- Inicio -->
+            <li class="nav-item mb-1">
+                <a class="nav-link @Active("Home","Index")" asp-controller="Home" asp-action="Index">
+                    <i class="fas fa-home me-2"></i> Inicio
+                </a>
+            </li>
+
+            <!-- Solicitudes -->
+            <li class="nav-section text-white-50 small text-uppercase px-2 mt-2">Solicitudes</li>
+            <li class="nav-item">
+                <a class="nav-link section-toggle d-flex align-items-center @(inSolicitudes ? "" : "collapsed")"
+                   data-bs-toggle="collapse" href="#menuSolicitudes" role="button"
+                   aria-expanded="@(inSolicitudes.ToString().ToLower())" aria-controls="menuSolicitudes">
+                    <i class="fas fa-folder-open me-2"></i> Gestión
+                    <span class="ms-auto chev fas fa-chevron-right"></span>
+                </a>
+                <div id="menuSolicitudes" class="collapse @Show("Solicitudes")" data-bs-parent="#sidebarAccordion">
+                    <ul class="nav flex-column ms-3">
+                        <li class="nav-item"><a class="nav-link @Active("Requests","Create")" asp-controller="Requests" asp-action="Create"><i class="fas fa-plus-circle me-2"></i>Nueva</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("Requests","My")" asp-controller="Requests" asp-action="My"><i class="fas fa-list me-2"></i>Mis solicitudes</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("Requests","Index")" asp-controller="Requests" asp-action="Index"><i class="fas fa-table me-2"></i>Todas</a></li>
+                    </ul>
+                </div>
+            </li>
+
+            <!-- Aprobaciones -->
+            <li class="nav-section text-white-50 small text-uppercase px-2 mt-2">Aprobaciones</li>
+            <li class="nav-item">
+                <a class="nav-link section-toggle d-flex align-items-center @(inAprobaciones ? "" : "collapsed")"
+                   data-bs-toggle="collapse" href="#menuAprobaciones" role="button"
+                   aria-expanded="@(inAprobaciones.ToString().ToLower())" aria-controls="menuAprobaciones">
+                    <i class="fas fa-check-double me-2"></i> Bandejas
+                    <span class="ms-auto chev fas fa-chevron-right"></span>
+                </a>
+                <div id="menuAprobaciones" class="collapse @Show("Aprobaciones")" data-bs-parent="#sidebarAccordion">
+                    <ul class="nav flex-column ms-3">
+                        <li class="nav-item"><a class="nav-link @(ctrl=="Aprobaciones" ? "active" : "")" asp-controller="Aprobaciones" asp-action="Index"><i class="fas fa-inbox me-2"></i>Pendientes</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("AprobacionesEtapa")" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="MNG">MNG</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("AprobacionesEtapa")" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="JPN">JPN</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("AprobacionesEtapa")" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="MC">MC</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("AprobacionesEtapa")" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="PL">PL</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("AprobacionesEtapa")" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="PCMNG">PC MNG</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("AprobacionesEtapa")" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="PCJPN">PC JPN</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("AprobacionesEtapa")" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="FINMNG">FIN MNG</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("AprobacionesEtapa")" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="FINJPN">FIN JPN</a></li>
+                    </ul>
+                </div>
+            </li>
+
+            <!-- PC Finalización -->
+            <li class="nav-item mt-2">
+                <a class="nav-link @Active("PcFinal","Index")" asp-controller="PcFinal" asp-action="Index">
+                    <i class="fas fa-clipboard-check me-2"></i> PC - Finalización
+                </a>
+            </li>
+
+            <!-- Catálogos -->
+            <li class="nav-section text-white-50 small text-uppercase px-2 mt-2">Catálogos</li>
+            <li class="nav-item">
+                <a class="nav-link section-toggle d-flex align-items-center @(inCatalogos ? "" : "collapsed")"
+                   data-bs-toggle="collapse" href="#menuCatalogos" role="button"
+                   aria-expanded="@(inCatalogos.ToString().ToLower())" aria-controls="menuCatalogos">
+                    <i class="fas fa-boxes me-2"></i> Catálogos
+                    <span class="ms-auto chev fas fa-chevron-right"></span>
+                </a>
+                <div id="menuCatalogos" class="collapse @Show("Catalogos")" data-bs-parent="#sidebarAccordion">
+                    <ul class="nav flex-column ms-3">
+                        <li class="nav-item"><a class="nav-link @Active("Catalogos","Clases")" asp-controller="Catalogos" asp-action="Clases"><i class="fas fa-tags me-2"></i>Clases</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("Catalogos","Lineas")" asp-controller="Catalogos" asp-action="Lineas"><i class="fas fa-code-branch me-2"></i>Líneas/Áreas</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("Catalogos","Codigos")" asp-controller="Catalogos" asp-action="Codigos"><i class="fas fa-qrcode me-2"></i>Códigos</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("Catalogos","Movimientos")" asp-controller="Catalogos" asp-action="Movimientos"><i class="fas fa-exchange-alt me-2"></i>Cod. Movimiento</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("Catalogos","Ubicaciones")" asp-controller="Catalogos" asp-action="Ubicaciones"><i class="fas fa-map-marker-alt me-2"></i>Ubicaciones</a></li>
+                    </ul>
+                </div>
+            </li>
+
+        </ul>
+    </nav>
+
+    <div class="sidebar-footer p-2">
+        @if (User.Identity?.IsAuthenticated ?? false)
+        {
+            <div class="user-info text-white-50 mb-2">
+                <i class="fas fa-user-circle me-2"></i>
+                <span>@(User.FindFirst("DisplayName")?.Value ?? User.Identity?.Name)</span>
+            </div>
+            <a class="btn btn-sm btn-outline-light w-100" asp-controller="Account" asp-action="Logout">
+                <i class="fas fa-sign-out-alt me-1"></i> Cerrar sesión
+            </a>
+        }
+        else
+        {
+            <a class="btn btn-sm btn-primary w-100" asp-controller="Account" asp-action="Login">
+                <i class="fas fa-sign-in-alt me-1"></i> Iniciar sesión
+            </a>
+        }
+    </div>
+</aside>

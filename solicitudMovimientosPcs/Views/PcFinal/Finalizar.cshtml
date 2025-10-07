@@ -1,0 +1,75 @@
+﻿@model solicitudMovimientosPcs.Models.PcFinal.PcFinalizarViewModel
+@{
+    ViewData["Title"] = "Finalizar solicitud";
+}
+
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">Finalizar solicitud #@Model.RequestId</h5>
+    </div>
+    <div class="card-body">
+        <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+
+        @if (Model.Request != null)
+        {
+            <div class="row g-3 mb-3">
+                <div class="col-md-3">
+                    <label class="form-label">Fecha</label>
+                    <input class="form-control" value="@Model.Request.Fecha.ToString("yyyy-MM-dd")" readonly />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Solicitante</label>
+                    <input class="form-control" value="@Model.Request.Solicitante" readonly />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Departamento</label>
+                    <input class="form-control" value="@Model.Request.Departamento" readonly />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Línea</label>
+                    <input class="form-control" value="@Model.Request.Linea" readonly />
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Comentarios</label>
+                    <textarea class="form-control" rows="2" readonly>@Model.Request.Comentarios</textarea>
+                </div>
+            </div>
+        }
+
+        <form asp-action="Finalizar" method="post" enctype="multipart/form-data" class="vstack gap-3">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="RequestId" />
+
+            <div>
+                <label asp-for="Folio" class="form-label">Folio PC</label>
+                <input asp-for="Folio" class="form-control" maxlength="50" />
+                <span asp-validation-for="Folio" class="text-danger"></span>
+            </div>
+
+            <div>
+                <label asp-for="Documento" class="form-label">Documento (PDF, DOC[X], XLS[X], PNG, JPG)</label>
+                <input asp-for="Documento" type="file" class="form-control" />
+                <span asp-validation-for="Documento" class="text-danger"></span>
+
+                @if (!string.IsNullOrWhiteSpace(Model.Request?.PcDocumentoPath))
+                {
+                    <div class="form-text mt-1">
+                        Documento actual:
+                        <a href="@Model.Request.PcDocumentoPath" target="_blank">ver/descargar</a>
+                    </div>
+                }
+            </div>
+
+            <div class="text-end">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-check me-1"></i> Finalizar
+                </button>
+                <a asp-action="Index" class="btn btn-secondary ms-2">Volver</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
