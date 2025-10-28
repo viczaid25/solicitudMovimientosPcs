@@ -1,9 +1,16 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35919.96 d17.13
+VisualStudioVersion = 17.13.35919.96
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "solicitudMovimientosPcs", "solicitudMovimientosPcs\solicitudMovimientosPcs.csproj", "{3C5E4285-07E9-4503-A714-8D1CF65CBD87}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\..\Downloads\CHANGELOG.md = ..\..\..\Downloads\CHANGELOG.md
+		..\..\..\Downloads\er.puml = ..\..\..\Downloads\er.puml
+		..\..\..\Downloads\README.md = ..\..\..\Downloads\README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -784,13 +784,13 @@
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\solicitudMovimientosPcs.ttkqp6ojt9.bundle.scp.css'))</AssetFile>
       <Selectors><![CDATA[[]]]></Selectors>
       <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-D0NTJwBNiLXuLgtLvGf/stnEhrQWBIWdvkL1t\u002B6GXAQ="}]]]></EndpointProperties>
-      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"1141"},{"Name":"Content-Type","Value":"text/css"},{"Name":"ETag","Value":"\u0022D0NTJwBNiLXuLgtLvGf/stnEhrQWBIWdvkL1t\u002B6GXAQ=\u0022"},{"Name":"Last-Modified","Value":"Wed, 01 Oct 2025 16:19:21 GMT"}]]]></ResponseHeaders>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"1141"},{"Name":"Content-Type","Value":"text/css"},{"Name":"ETag","Value":"\u0022D0NTJwBNiLXuLgtLvGf/stnEhrQWBIWdvkL1t\u002B6GXAQ=\u0022"},{"Name":"Last-Modified","Value":"Fri, 24 Oct 2025 00:36:14 GMT"}]]]></ResponseHeaders>
     </StaticWebAssetEndpoint>
     <StaticWebAssetEndpoint Include="_content/solicitudMovimientosPcs/solicitudMovimientosPcs.ttkqp6ojt9.bundle.scp.css">
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\solicitudMovimientosPcs.ttkqp6ojt9.bundle.scp.css'))</AssetFile>
       <Selectors><![CDATA[[]]]></Selectors>
       <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"ttkqp6ojt9"},{"Name":"integrity","Value":"sha256-D0NTJwBNiLXuLgtLvGf/stnEhrQWBIWdvkL1t\u002B6GXAQ="},{"Name":"label","Value":"_content/solicitudMovimientosPcs/solicitudMovimientosPcs.bundle.scp.css"}]]]></EndpointProperties>
-      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"1141"},{"Name":"Content-Type","Value":"text/css"},{"Name":"ETag","Value":"\u0022D0NTJwBNiLXuLgtLvGf/stnEhrQWBIWdvkL1t\u002B6GXAQ=\u0022"},{"Name":"Last-Modified","Value":"Wed, 01 Oct 2025 16:19:21 GMT"}]]]></ResponseHeaders>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"1141"},{"Name":"Content-Type","Value":"text/css"},{"Name":"ETag","Value":"\u0022D0NTJwBNiLXuLgtLvGf/stnEhrQWBIWdvkL1t\u002B6GXAQ=\u0022"},{"Name":"Last-Modified","Value":"Fri, 24 Oct 2025 00:36:14 GMT"}]]]></ResponseHeaders>
     </StaticWebAssetEndpoint>
     <StaticWebAssetEndpoint Include="_content/solicitudMovimientosPcs/sw.f6vxh0t8lf.js">
       <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\sw.js'))</AssetFile>

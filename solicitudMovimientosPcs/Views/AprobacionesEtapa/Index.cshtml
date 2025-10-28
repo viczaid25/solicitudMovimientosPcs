@@ -77,6 +77,17 @@ else
                                     <i class="fas fa-times me-1"></i> Rechazar
                                 </button>
                             </form>
+                            <form asp-controller="AprobacionesEtapa" asp-action="MODIFY"
+                                  asp-route-stage="@stage" asp-route-id="@r.Id"
+                                  method="post" class="d-inline ms-1"
+                                  onsubmit="return confirm('¿Enviar la solicitud #@r.Id a modificación para que el solicitante la edite?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-warning text-dark">
+                                    <i class="fas fa-rotate-left me-1"></i> Modificar
+                                </button>
+                            </form>
+
+
                         </td>
                     </tr>
                 }

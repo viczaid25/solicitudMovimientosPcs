@@ -154,6 +154,31 @@ namespace solicitudMovimientosPcs.Controllers
             return RedirectToAction(nameof(Index), new { stage = st });
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Modify(int id, string stage)
+        {
+            var user = User.FindFirst("DisplayName")?.Value ?? User.Identity?.Name ?? "user";
+            var a = await _db.PcMovimientosAprobaciones
+                .Include(x => x.Solicitud)
+                .FirstOrDefaultAsync(x => x.RequestId == id);
+
+            if (a == null) return NotFound();
+
+            // Marca la etapa actual como MODIFY
+            bool ok = SetStageStatus(a, stage, ApprovalStatus.MODIFY, user, DateTime.Now);
+            if (!ok) return BadRequest("Etapa inválida.");
+
+            // Pasa la solicitud a estado PorModificar para que el solicitante la edite
+            if (a.Solicitud != null)
+                a.Solicitud.RequestStatus = RequestStatus.PorModificar;
+
+            await _db.SaveChangesAsync();
+            TempData["Msg"] = "Solicitud enviada a modificación.";
+
+            return RedirectToAction(nameof(Index), new { stage });
+        }
+
         // ======= Helpers de flujo/propiedades por etapa =======
         private bool IsPending(PcMovimientosAprobaciones a, string st) => st switch
         {
@@ -167,6 +192,34 @@ namespace solicitudMovimientosPcs.Controllers
             "FINJPN" => a.FinJpnStatus == ApprovalStatus.PENDING || a.FinJpnStatus == null,
             _ => false
         };
+
+        /// <summary>
+        /// Actualiza una etapa específica a un status/datos.
+        /// stage: MNG, JPN, MC, PL, PCMNG, PCJPN, FINMNG, FINJPN
+        /// </summary>
+        private bool SetStageStatus(PcMovimientosAprobaciones a, string stage, ApprovalStatus status, string user, DateTime when)
+        {
+            switch (stage?.ToUpperInvariant())
+            {
+                case "MNG":
+                    a.MngStatus = status; a.Mng = user; a.MngDate = when; return true;
+                case "JPN":
+                    a.JpnStatus = status; a.Jpn = user; a.JpnDate = when; return true;
+                case "MC":
+                    a.McStatus = status; a.Mc = user; a.McDate = when; return true;
+                case "PL":
+                    a.PlStatus = status; a.Pl = user; a.PlDate = when; return true;
+                case "PCMNG":
+                    a.PcMngStatus = status; a.PcMng = user; a.PcMngDate = when; return true;
+                case "PCJPN":
+                    a.PcJpnStatus = status; a.PcJpn = user; a.PcJpnDate = when; return true;
+                case "FINMNG":
+                    a.FinMngStatus = status; a.FinMng = user; a.FinMngDate = when; return true;
+                case "FINJPN":
+                    a.FinJpnStatus = status; a.FinJpn = user; a.FinJpnDate = when; return true;
+            }
+            return false;
+        }
 
         private bool PrevApproved(PcMovimientosAprobaciones a, string st)
         {

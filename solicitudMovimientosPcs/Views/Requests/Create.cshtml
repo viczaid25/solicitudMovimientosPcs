@@ -24,31 +24,47 @@
 
         <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
 
-        <form asp-action="Create" method="post">
+        <form asp-action="Create" method="post" id="frmCreate" autocomplete="off">
             @Html.AntiForgeryToken()
 
             <div class="row g-3">
+                <!-- FECHA (requerido): Muestra deshabilitado + hidden para enviar -->
                 <div class="col-md-3">
-                    <label asp-for="Fecha" class="form-label">Fecha</label>
-                    <input asp-for="Fecha" class="form-control" type="date" />
+                    <label class="form-label req">Fecha</label>
+                    <input class="form-control" value="@Model.Fecha.ToString("yyyy-MM-dd")" type="date" disabled />
+                    <input type="hidden" asp-for="Fecha" />
                     <span asp-validation-for="Fecha" class="text-danger"></span>
                 </div>
 
+                <!-- SOLICITANTE: solo lectura + hidden -->
                 <div class="col-md-3">
-                    <label class="form-label">Solicitante</label>
+                    <label class="form-label req">Solicitante</label>
                     <input class="form-control" value="@solicitanteActual" readonly />
                     <input type="hidden" name="Solicitante" value="@solicitanteActual" />
                 </div>
 
+                <!-- DEPARTAMENTO (requerido): Lista fija, deshabilitado visual + hidden para enviar -->
                 <div class="col-md-3">
-                    <label asp-for="Departamento" class="form-label">Departamento</label>
-                    <input asp-for="Departamento" class="form-control" />
+                    <label class="form-label req">Departamento</label>
+                    <select class="form-select" disabled>
+                        @{
+                            var dept = Model.Departamento ?? "";
+                            string[] opcionesDept = new[] { "MELX", "SAL", "IT", "PD", "LGL", "PRC", "TOP", "HR", "FIN", "QC", "PC", "FC" };
+                        }
+                        @foreach (var d in opcionesDept)
+                        {
+                            <option value="@d" selected="@(dept == d)">@d</option>
+                        }
+                    </select>
+                    <!-- se envía en hidden -->
+                    <input type="hidden" asp-for="Departamento" />
                     <span asp-validation-for="Departamento" class="text-danger"></span>
                 </div>
 
+                <!-- LÍNEA (requerido) -->
                 <div class="col-md-3">
-                    <label asp-for="Linea" class="form-label">Línea</label>
-                    <select asp-for="Linea" class="form-select" asp-items="lineas">
+                    <label class="form-label req">Línea</label>
+                    <select asp-for="Linea" class="form-select" asp-items="lineas" required>
                         <option value="">-- Selecciona --</option>
                     </select>
                     <span asp-validation-for="Linea" class="text-danger"></span>
@@ -59,9 +75,10 @@
                     <textarea asp-for="Comentarios" class="form-control" rows="2"></textarea>
                 </div>
 
+                <!-- URGENCIA (requerido) -->
                 <div class="col-md-3">
-                    <label asp-for="Urgencia" class="form-label">Urgencia</label>
-                    <select asp-for="Urgencia" class="form-select" asp-items="Html.GetEnumSelectList<Urgencia>()"></select>
+                    <label class="form-label req">Urgencia</label>
+                    <select asp-for="Urgencia" class="form-select" asp-items="Html.GetEnumSelectList<Urgencia>()" required></select>
                     <span asp-validation-for="Urgencia" class="text-danger"></span>
                 </div>
             </div>
@@ -132,26 +149,23 @@
                 }
             </select>
 
-            <!-- Tabla: una fila por item con 4 secciones -->
+            <!-- Tabla items -->
             <div class="table-responsive h-scroll">
                 <table class="table table-sm align-middle table-nowrap table-wide" id="itemsTable">
                     <thead class="table-light">
                         <tr>
-                            <!-- Grupo 1 -->
                             <th colspan="9" class="text-center">Información actual del material PCS</th>
-                            <!-- Grupo 2 -->
                             <th colspan="4" class="text-center">Modificación de PCS Solicitada</th>
-                            <!-- Grupo 3 -->
                             <th colspan="1" class="text-center">Diferencia</th>
-                            <!-- Grupo 4 -->
                             <th colspan="3" class="text-center">Costos</th>
+                            <th colspan="1" class="text-center">Acciones</th>
                         </tr>
                         <tr>
                             <!-- G1 -->
                             <th style="min-width:70px">No.</th>
-                            <th style="min-width:140px">Núm. Parte</th>
-                            <th style="min-width:220px">Descripción</th>
-                            <th style="min-width:240px">CodMov</th>
+                            <th style="min-width:140px" class="req">Núm. Parte</th>
+                            <th style="min-width:220px" class="req">Descripción</th>
+                            <th style="min-width:240px" class="req">CodMov</th>
                             <th style="min-width:120px">Case</th>
                             <th style="min-width:160px">Ubic A (libre)</th>
                             <th style="min-width:140px">Estatus A</th>
@@ -168,24 +182,32 @@
                             <th style="min-width:120px">Moneda</th>
                             <th style="min-width:130px">Costo U</th>
                             <th style="min-width:140px">Total</th>
+                            <!-- G5 -->
+                            <th style="min-width:90px">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         @for (int i = 0; i < Model.Items.Count; i++)
                         {
                             <tr>
-                                <!-- G1 -->
-                                <td><input class="form-control" asp-for="Items[@i].Numero" type="number" /></td>
-                                <td><input class="form-control" asp-for="Items[@i].NumParte" /></td>
-                                <td><input class="form-control" asp-for="Items[@i].Descripcion" /></td>
+                                <!-- No. -> no editable (readonly) y sin spinners (usamos text) -->
                                 <td>
-                                    <select class="form-select" asp-for="Items[@i].CodMov" asp-items="codMovs">
+                                    <input class="form-control" asp-for="Items[@i].Numero" type="text" readonly />
+                                </td>
+
+                                <td><input class="form-control to-upper" asp-for="Items[@i].NumParte" required /></td>
+                                <td><input class="form-control to-upper" asp-for="Items[@i].Descripcion" required /></td>
+
+                                <td>
+                                    <select class="form-select" asp-for="Items[@i].CodMov" asp-items="codMovs" required>
                                         <option value=""></option>
                                     </select>
                                 </td>
-                                <td><input class="form-control" asp-for="Items[@i].Case" /></td>
+
+                                <td><input class="form-control to-upper" asp-for="Items[@i].Case" /></td>
+
                                 <td>
-                                    <input class="form-control" asp-for="Items[@i].UbicacionA" />
+                                    <input class="form-control to-upper" asp-for="Items[@i].UbicacionA" />
                                 </td>
                                 <td>
                                     <select class="form-select" asp-for="Items[@i].EstatusA" asp-items="estatus">
@@ -219,13 +241,17 @@
                                     </select>
                                 </td>
                                 <td>
-                                    <input class="form-control qtyD no-spinners" asp-for="Items[@i].CantidadD"
-                                           type="number" step="1" inputmode="numeric" pattern="[0-9]*" />
+                                    <input class="form-control qtyD no-spinners"
+                                           asp-for="Items[@i].CantidadD"
+                                           type="number" step="1" inputmode="numeric" pattern="[0-9]*"
+                                           readonly />
                                 </td>
 
                                 <!-- G3 -->
                                 <td>
-                                    <input class="form-control diff" asp-for="Items[@i].Diferencia" type="number" step="0.01" readonly />
+                                    <input class="form-control diff"
+                                           asp-for="Items[@i].Diferencia"
+                                           type="number" step="1" />
                                 </td>
 
                                 <!-- G4 -->
@@ -236,6 +262,13 @@
                                 </td>
                                 <td><input class="form-control costU" asp-for="Items[@i].CostoU" type="number" step="0.01" /></td>
                                 <td><input class="form-control total" asp-for="Items[@i].Total" type="number" step="0.01" readonly /></td>
+
+                                <!-- G5 -->
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-sm btn-outline-danger btn-del" title="Eliminar fila">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -253,15 +286,22 @@
 
 @section Styles {
     <style>
+        /* Asterisco rojo para campos requeridos */
+        .req::after {
+            content: " *";
+            color: #dc3545;
+            font-weight: 700;
+        }
+
         .table-nowrap th, .table-nowrap td {
             white-space: nowrap;
         }
-        /* 17 columnas → ancho mínimo generoso para laptop + scroll */
+
         .table-wide {
-            min-width: 2400px;
+            min-width: 2600px;
         }
 
-        /* Ocultar spinners de number */
+        /* Ocultar spinners de number si los hubiera */
         .no-spinners::-webkit-outer-spin-button,
         .no-spinners::-webkit-inner-spin-button {
             -webkit-appearance: none;
@@ -271,6 +311,11 @@
         .no-spinners {
             -moz-appearance: textfield;
         }
+
+        /* Visual: forzar mayúsculas en inputs de texto */
+        .to-upper {
+            text-transform: uppercase;
+        }
     </style>
 }
 
@@ -278,6 +323,18 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         (function () {
+            const form = document.getElementById('frmCreate');
+
+            // Evitar submit con Enter (excepto textarea/botones)
+            form.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    const tag = e.target.tagName.toLowerCase();
+                    if (tag !== 'textarea' && tag !== 'button') {
+                        e.preventDefault();
+                    }
+                }
+            });
+
             let idx = @Model.Items.Count;
 
             const tpl = {
@@ -290,21 +347,25 @@
 
             const tableBody = document.querySelector('#itemsTable tbody');
 
-            function toNum(v) { return parseFloat((v || '0').toString().replace(',', '.')) || 0 }
+            function toNum(v){ return parseFloat((v || '0').toString().replace(',', '.')) || 0 }
 
-            function recalcRow(tr) {
-                const qtyA = toNum(tr.querySelector('.qtyA')?.value);
-                const qtyD = toNum(tr.querySelector('.qtyD')?.value);
-                const cost = toNum(tr.querySelector('.costU')?.value);
+            function recalcRow(tr){
+              const qtyA = toNum(tr.querySelector('.qtyA')?.value);
+              const diff = toNum(tr.querySelector('.diff')?.value);
+              const cost = toNum(tr.querySelector('.costU')?.value);
 
-                const diff = qtyD - qtyA;
-                const qtyBase = (qtyD || qtyA);
-                const total = cost * qtyBase;
+              // Nueva lógica: CantA - Diferencia = CantD
+              const qtyD = qtyA - diff;
 
-                const diffInput = tr.querySelector('.diff');
-                const totalInput = tr.querySelector('.total');
-                if (diffInput)  diffInput.value  = diff.toFixed(2);
-                if (totalInput) totalInput.value = total.toFixed(2);
+              // Escribimos CantD (readonly)
+              const qtyDInput = tr.querySelector('.qtyD');
+              if (qtyDInput) qtyDInput.value = Number.isFinite(qtyD) ? Math.trunc(qtyD) : 0;
+
+              // Total: usa CantD (si no es válido, 0)
+              const total = (Number.isFinite(qtyD) ? qtyD : 0) * cost;
+
+              const totalInput = tr.querySelector('.total');
+              if (totalInput) totalInput.value = Number.isFinite(total) ? total.toFixed(2) : '0.00';
             }
 
             function nextNumero(prefill){
@@ -320,30 +381,32 @@
             function addRow(prefill) {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <!-- G1 -->
-                    <td><input class="form-control" name="Items[${idx}].Numero" type="number" value="${nextNumero(prefill)}" /></td>
-                    <td><input class="form-control" name="Items[${idx}].NumParte" /></td>
-                    <td><input class="form-control" name="Items[${idx}].Descripcion" /></td>
-                    <td><select class="form-select" name="Items[${idx}].CodMov">${tpl.cods}</select></td>
-                    <td><input class="form-control" name="Items[${idx}].Case" /></td>
-                    <td><input class="form-control" name="Items[${idx}].UbicacionA" /></td>
+                    <td><input class="form-control" name="Items[${idx}].Numero" type="text" value="${nextNumero(prefill)}" readonly /></td>
+                    <td><input class="form-control to-upper" name="Items[${idx}].NumParte" required /></td>
+                    <td><input class="form-control to-upper" name="Items[${idx}].Descripcion" required /></td>
+                    <td><select class="form-select" name="Items[${idx}].CodMov" required>${tpl.cods}</select></td>
+                    <td><input class="form-control to-upper" name="Items[${idx}].Case" /></td>
+                    <td><input class="form-control to-upper" name="Items[${idx}].UbicacionA" /></td>
                     <td><select class="form-select" name="Items[${idx}].EstatusA">${tpl.est}</select></td>
                     <td><select class="form-select" name="Items[${idx}].ClaseA">${tpl.clases}</select></td>
                     <td><input class="form-control qtyA no-spinners" name="Items[${idx}].CantidadA" type="number" step="1" inputmode="numeric" pattern="[0-9]*" /></td>
 
-                    <!-- G2 -->
                     <td><select class="form-select" name="Items[${idx}].EstatusD">${tpl.est}</select></td>
                     <td><select class="form-select" name="Items[${idx}].UbicacionD">${tpl.ubics}</select></td>
                     <td><select class="form-select" name="Items[${idx}].ClaseD">${tpl.clases}</select></td>
-                    <td><input class="form-control qtyD no-spinners" name="Items[${idx}].CantidadD" type="number" step="1" inputmode="numeric" pattern="[0-9]*" /></td>
+                    <td><input class="form-control qtyD no-spinners" name="Items[${idx}].CantidadD" type="number" step="1" inputmode="numeric" pattern="[0-9]*" readonly /></td>
 
-                    <!-- G3 -->
-                    <td><input class="form-control diff"  name="Items[${idx}].Diferencia" type="number" step="0.01" readonly /></td>
+                    <td><input class="form-control diff"  name="Items[${idx}].Diferencia" type="number" step="1" /></td>
 
-                    <!-- G4 -->
                     <td><select class="form-select" name="Items[${idx}].Moneda">${tpl.mon}</select></td>
                     <td><input class="form-control costU" name="Items[${idx}].CostoU" type="number" step="0.01" /></td>
                     <td><input class="form-control total" name="Items[${idx}].Total"      type="number" step="0.01" readonly /></td>
+
+                    <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-outline-danger btn-del" title="Eliminar fila">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
                 `;
                 tableBody.appendChild(tr);
 
@@ -363,7 +426,6 @@
                     setVal(tr, 'CantidadD',   prefill.CantidadD);
 
                     setVal(tr, 'Diferencia',  prefill.Diferencia);
-
                     setSel(tr, 'Moneda',      prefill.Moneda);
                     setVal(tr, 'CostoU',      prefill.CostoU);
                     setVal(tr, 'Total',       prefill.Total);
@@ -395,31 +457,40 @@
                     EstatusA:   val('EstatusA'),
                     ClaseA:     val('ClaseA'),
                     CantidadA:  val('CantidadA'),
-
                     EstatusD:   val('EstatusD'),
                     UbicacionD: val('UbicacionD'),
                     ClaseD:     val('ClaseD'),
                     CantidadD:  val('CantidadD'),
-
                     Diferencia: val('Diferencia'),
-
                     Moneda:     val('Moneda'),
                     CostoU:     val('CostoU'),
                     Total:      val('Total')
                 };
             }
 
-            tableBody.addEventListener('input', function (e) {
-                if (e.target.matches('.qtyA, .qtyD, .costU')) {
+            // Dispara recálculo ante cambios en CantA, Diferencia o Costo U
+            tableBody.addEventListener('input', function(e){
+              if (e.target.matches('.qtyA, .diff, .costU')) {
+                const tr = e.target.closest('tr');
+                recalcRow(tr);
+              }
+              // Uppercase en inputs de texto
+              if (e.target.tagName === 'INPUT' && e.target.type === 'text') {
+                e.target.value = e.target.value.toUpperCase();
+              }
+            });
+
+            // Eliminar fila
+            tableBody.addEventListener('click', function(e){
+                if (e.target.closest('.btn-del')) {
                     const tr = e.target.closest('tr');
-                    recalcRow(tr);
+                    if (!tr) return;
+                    tr.remove();
                 }
             });
 
-            document.getElementById('addItem').addEventListener('click', function () {
-                addRow();
-            });
-
+            // Agregar/duplicar fila
+            document.getElementById('addItem').addEventListener('click', function () { addRow(); });
             document.getElementById('dupLast').addEventListener('click', function () {
                 const last = tableBody.querySelector('tr:last-child');
                 if (!last) { addRow(); return; }
@@ -427,7 +498,11 @@
                 addRow(data);
             });
 
-            document.querySelectorAll('#itemsTable tbody tr').forEach(recalcRow);
+            // Inicial: recalcular y poner en mayúsculas
+            document.querySelectorAll('#itemsTable tbody tr').forEach(tr => {
+                recalcRow(tr);
+                tr.querySelectorAll('input[type="text"]').forEach(inp => inp.value = (inp.value || '').toUpperCase());
+            });
         })();
     </script>
 }

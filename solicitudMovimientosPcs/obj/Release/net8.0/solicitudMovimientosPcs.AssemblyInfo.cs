@@ -16,7 +16,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("solicitudMovimientosPcs")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+574ce899a7aadbd135687f7f13aea9ca25ed8be0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+20bbfdf59848b05c34657fc6012634ac06391c26")]
 [assembly: System.Reflection.AssemblyProductAttribute("solicitudMovimientosPcs")]
 [assembly: System.Reflection.AssemblyTitleAttribute("solicitudMovimientosPcs")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

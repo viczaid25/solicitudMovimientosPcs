@@ -6,6 +6,7 @@
         EnProceso,
         Completado,
         Rechazado,
-        Cancelado
+        Cancelado,
+        PorModificar
     }
 }

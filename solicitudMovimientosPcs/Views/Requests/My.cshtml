@@ -1,80 +1,156 @@
-﻿@model IEnumerable<solicitudMovimientosPcs.Models.PcMovimientosRequest>
-@using solicitudMovimientosPcs.Models
+﻿@model solicitudMovimientosPcs.Models.ViewModels.MyRequestsViewModel
 
 @{
-    ViewData["Title"] = "Mis solicitudes";
-    var solicitante = ViewBag.Solicitante as string;
+    ViewData["Title"] = "Mis Solicitudes";
 }
 
-<h2 class="mb-3">
-    Mis solicitudes
-    @if (!string.IsNullOrWhiteSpace(solicitante))
-    {
-        <small class="text-muted">(@solicitante)</small>
-    }
-</h2>
+<h2 class="mb-3">Mis Solicitudes <small class="text-muted">(@Model.DisplayName)</small></h2>
 
 <div class="d-flex gap-2 mb-3">
-    <a asp-action="Create" class="btn btn-primary">Nueva solicitud</a>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="fa fa-plus me-1"></i> Nueva Solicitud
+    </a>
 </div>
 
-@if (Model == null || !Model.Any())
+@if (Model.ParaModificar.Any())
 {
-    <div class="alert alert-info">No hay solicitudes para mostrar.</div>
-}
-else
-{
-    <div class="table-responsive">
-        <table class="table table-hover align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>ID</th>
-                    <th>Fecha</th>
-                    <th>Departamento</th>
-                    <th>Línea</th>
-                    <th>Urgencia</th>
-                    <th>Estatus</th>
-                    <th class="text-end">Items</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var r in Model)
-                {
-                    <tr>
-                        <td>@r.Id</td>
-                        <td>@r.Fecha.ToString("yyyy-MM-dd HH:mm")</td>
-                        <td>@r.Departamento</td>
-                        <td>@r.Linea</td>
-                        <td><span class="@BadgeForUrgencia(r.Urgencia)">@r.Urgencia</span></td>
-                        <td><span class="@BadgeForStatus(r.RequestStatus)">@r.RequestStatus</span></td>
-                        <td class="text-end">@((r.Items?.Count) ?? 0)</td>
-                        <td class="text-end">
-                            <a asp-action="Details" asp-route-id="@r.Id" class="btn btn-sm btn-outline-primary">Ver</a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+    <div class="card mb-4">
+        <div class="card-header bg-warning text-dark fw-bold">
+            <i class="fa fa-pen-to-square me-1"></i> Para modificar
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Fecha</th>
+                            <th>Departamento</th>
+                            <th>Línea</th>
+                            <th>Urgencia</th>
+                            <th class="text-end">Items</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model.ParaModificar)
+                        {
+                            <tr>
+                                <td>@r.Id</td>
+                                <td>@r.Fecha.ToString("yyyy-MM-dd")</td>
+                                <td>@r.Departamento</td>
+                                <td>@r.Linea</td>
+                                <td><span class="badge bg-info text-dark">@r.Urgencia</span></td>
+                                <td class="text-end">@((r.Items?.Count) ?? 0)</td>
+                                <td class="text-end">
+                                    <a asp-action="Edit" asp-route-id="@r.Id" class="btn btn-sm btn-warning">
+                                        <i class="fa fa-edit me-1"></i> Editar y reenviar
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 }
 
-@functions {
-    string BadgeForUrgencia(Urgencia u) => u switch
-    {
-        Urgencia.Critica => "badge bg-danger",
-        Urgencia.Alta => "badge bg-warning text-dark",
-        Urgencia.Media => "badge bg-info text-dark",
-        _ => "badge bg-secondary"
-    };
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white fw-bold">
+        <i class="fa fa-hourglass-half me-1"></i> Pendientes de aprobación
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.PendientesAprobacion.Any())
+        {
+            <div class="p-3 text-muted">No tienes solicitudes pendientes de aprobación.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Fecha</th>
+                            <th>Departamento</th>
+                            <th>Línea</th>
+                            <th>Urgencia</th>
+                            <th>Estatus</th>
+                            <th class="text-end">Items</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model.PendientesAprobacion)
+                        {
+                            <tr>
+                                <td>@r.Id</td>
+                                <td>@r.Fecha.ToString("yyyy-MM-dd")</td>
+                                <td>@r.Departamento</td>
+                                <td>@r.Linea</td>
+                                <td><span class="badge bg-info text-dark">@r.Urgencia</span></td>
+                                <td><span class="badge bg-primary">@r.RequestStatus</span></td>
+                                <td class="text-end">@((r.Items?.Count) ?? 0)</td>
+                                <td class="text-end">
+                                    <a asp-action="Details" asp-route-id="@r.Id" class="btn btn-sm btn-outline-primary">Ver</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
 
-    string BadgeForStatus(RequestStatus s) => s switch
-    {
-        RequestStatus.Nuevo => "badge bg-secondary",
-        RequestStatus.EnProceso => "badge bg-primary",
-        RequestStatus.Completado => "badge bg-success",
-        RequestStatus.Rechazado => "badge bg-danger",
-        RequestStatus.Cancelado => "badge bg-dark",
-        _ => "badge bg-light text-dark"
-    };
+@if (Model.Recientes.Any())
+{
+    <div class="card">
+        <div class="card-header bg-light fw-bold">
+            <i class="fa fa-clock me-1"></i> Recientes
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Fecha</th>
+                            <th>Departamento</th>
+                            <th>Línea</th>
+                            <th>Urgencia</th>
+                            <th>Estatus</th>
+                            <th class="text-end">Items</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model.Recientes)
+                        {
+                            <tr>
+                                <td>@r.Id</td>
+                                <td>@r.Fecha.ToString("yyyy-MM-dd")</td>
+                                <td>@r.Departamento</td>
+                                <td>@r.Linea</td>
+                                <td><span class="badge bg-info text-dark">@r.Urgencia</span></td>
+                                <td>
+                                    <span class="badge @(r.RequestStatus == RequestStatus.Completado ? "bg-success" :
+                                                    r.RequestStatus == RequestStatus.Rechazado ? "bg-danger" :
+                                                    r.RequestStatus == RequestStatus.PorModificar ? "bg-warning text-dark" :
+                                                    "bg-secondary")">
+                                        @r.RequestStatus
+                                    </span>
+                                </td>
+                                <td class="text-end">@((r.Items?.Count) ?? 0)</td>
+                                <td class="text-end">
+                                    <a asp-action="Details" asp-route-id="@r.Id" class="btn btn-sm btn-outline-secondary">Ver</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 }

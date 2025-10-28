@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using solicitudMovimientosPcs.Data;
 using solicitudMovimientosPcs.Models;
+using solicitudMovimientosPcs.Models.ViewModels;
 
 namespace solicitudMovimientosPcs.Controllers
 {
@@ -113,12 +114,14 @@ namespace solicitudMovimientosPcs.Controllers
                 if (it.Numero <= 0) it.Numero = i + 1;
 
                 var a = it.CantidadA ?? 0m;
-                var d = it.CantidadD ?? 0m;
-                it.Diferencia = d - a;
+                var diff = it.Diferencia ?? 0m;
 
-                var qtyBase = d != 0 ? d : a;
+                it.CantidadD = a - diff;
+
+                var qtyBase = it.CantidadD != 0 ? it.CantidadD : a;
                 it.Total = (it.CostoU ?? 0m) * qtyBase;
             }
+
 
             using var tx = await _db.Database.BeginTransactionAsync();
             try
@@ -175,17 +178,105 @@ namespace solicitudMovimientosPcs.Controllers
         [HttpGet]
         public async Task<IActionResult> My()
         {
-            var who = User.FindFirst("DisplayName")?.Value ?? User.Identity?.Name ?? string.Empty;
+            var display = User.FindFirst("DisplayName")?.Value ?? User.Identity?.Name ?? "";
 
-            var list = await _db.PcMovimientosRequests
-                .Where(r => r.Solicitante == who)
-                .Include(r => r.Items)
-                .OrderByDescending(r => r.Fecha)
-                .ToListAsync();
+            var q = _db.PcMovimientosRequests
+                       .AsNoTracking()
+                       .Include(r => r.Items)
+                       .Where(r => r.Solicitante == display);
 
-            ViewBag.Solicitante = who;
-            return View(list);
+            var vm = new MyRequestsViewModel
+            {
+                DisplayName = display,
+                ParaModificar = await q.Where(r => r.RequestStatus == RequestStatus.PorModificar)
+                                       .OrderByDescending(r => r.Fecha)
+                                       .ToListAsync(),
+                PendientesAprobacion = await q.Where(r => r.RequestStatus == RequestStatus.Nuevo
+                                                       || r.RequestStatus == RequestStatus.EnProceso)
+                                              .OrderByDescending(r => r.Fecha)
+                                              .ToListAsync(),
+                Recientes = await q.OrderByDescending(r => r.Fecha).Take(10).ToListAsync()
+            };
+
+            return View(vm);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            var display = User.FindFirst("DisplayName")?.Value ?? User.Identity?.Name ?? "";
+            var req = await _db.PcMovimientosRequests
+                .Include(r => r.Items)
+                .Include(r => r.Aprobaciones)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (req == null) return NotFound();
+
+            // Solo el dueño y cuando está PorModificar
+            if (!string.Equals(req.Solicitante, display, StringComparison.OrdinalIgnoreCase)
+                || req.RequestStatus != RequestStatus.PorModificar)
+                return Forbid();
+
+            // Cargar catálogos a ViewBag como en Create
+            await LoadItemCombosAsync();
+            return View("Create", req); // reutiliza la vista Create
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, PcMovimientosRequest model)
+        {
+            var display = User.FindFirst("DisplayName")?.Value ?? User.Identity?.Name ?? "";
+
+            var req = await _db.PcMovimientosRequests
+                .Include(r => r.Items)
+                .Include(r => r.Aprobaciones)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (req == null) return NotFound();
+
+            if (!string.Equals(req.Solicitante, display, StringComparison.OrdinalIgnoreCase)
+                || req.RequestStatus != RequestStatus.PorModificar)
+                return Forbid();
+
+            if (!ModelState.IsValid)
+            {
+                await LoadItemCombosAsync();
+                return View("Create", model);
+            }
+
+            // Actualiza campos de cabecera que permites cambiar
+            req.Departamento = model.Departamento;
+            req.Linea = model.Linea;
+            req.Comentarios = model.Comentarios;
+            req.Urgencia = model.Urgencia;
+
+            // Reemplaza items
+            _db.PcMovimientosItems.RemoveRange(req.Items);
+            req.Items = model.Items ?? new List<PcMovimientosItem>();
+            foreach (var it in req.Items) it.IdSolicitud = req.Id;
+
+            // Resetea aprobaciones a PENDING y limpia firmas/fechas
+            if (req.Aprobaciones != null)
+                ResetApprovals(req.Aprobaciones);
+
+            // Regresa al flujo normal
+            req.RequestStatus = RequestStatus.Nuevo;
+
+            await _db.SaveChangesAsync();
+            TempData["Msg"] = "Solicitud actualizada y reenviada al flujo de aprobación.";
+            return RedirectToAction(nameof(My));
+        }
+
+        private void ResetApprovals(PcMovimientosAprobaciones a)
+        {
+            a.Mng = a.Jpn = a.Mc = a.Pl = a.PcMng = a.PcJpn = a.FinMng = a.FinJpn = null;
+            a.MngDate = a.JpnDate = a.McDate = a.PlDate = a.PcMngDate = a.PcJpnDate = a.FinMngDate = a.FinJpnDate = null;
+
+            a.MngStatus = a.JpnStatus = a.McStatus = a.PlStatus =
+            a.PcMngStatus = a.PcJpnStatus = a.FinMngStatus = a.FinJpnStatus = ApprovalStatus.PENDING;
+        }
+
 
 
     }
