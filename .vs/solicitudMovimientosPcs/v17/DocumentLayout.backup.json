@@ -3,6 +3,14 @@
   "WorkspaceRootPath": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|c:\\users\\dm45207\\source\\repos\\solicitudmovimientospcs\\solicitudmovimientospcs\\models\\pcmovimientosaprobaciones.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|solutionrelative:solicitudmovimientospcs\\models\\pcmovimientosaprobaciones.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|c:\\users\\dm45207\\source\\repos\\solicitudmovimientospcs\\solicitudmovimientospcs\\views\\requests\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|solutionrelative:solicitudmovimientospcs\\views\\requests\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|c:\\users\\dm45207\\source\\repos\\solicitudmovimientospcs\\solicitudmovimientospcs\\controllers\\requestscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|solutionrelative:solicitudmovimientospcs\\controllers\\requestscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -37,10 +45,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|c:\\users\\dm45207\\source\\repos\\solicitudmovimientospcs\\solicitudmovimientospcs\\models\\enums\\requeststatus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|solutionrelative:solicitudmovimientospcs\\models\\enums\\requeststatus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|c:\\users\\dm45207\\source\\repos\\solicitudmovimientospcs\\solicitudmovimientospcs\\views\\requests\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|solutionrelative:solicitudmovimientospcs\\views\\requests\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     }
   ],
   "DocumentGroupContainers": [
@@ -50,7 +54,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 24,
-          "SelectedChildIndex": 4,
+          "SelectedChildIndex": 2,
           "Children": [
             {
               "$type": "Bookmark",
@@ -62,7 +66,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 0,
+              "Title": "PcMovimientosAprobaciones.cs",
+              "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Models\\PcMovimientosAprobaciones.cs",
+              "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Models\\PcMovimientosAprobaciones.cs",
+              "ToolTip": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Models\\PcMovimientosAprobaciones.cs",
+              "RelativeToolTip": "solicitudMovimientosPcs\\Models\\PcMovimientosAprobaciones.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvxQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-10-31T14:31:05.43Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
               "Title": "My.cshtml",
               "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Views\\Requests\\My.cshtml",
               "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Views\\Requests\\My.cshtml",
@@ -70,12 +87,11 @@
               "RelativeToolTip": "solicitudMovimientosPcs\\Views\\Requests\\My.cshtml",
               "ViewState": "AgIAAIAAAAAAAAAAAAAAwJwAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-10-24T00:27:07.314Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-24T00:27:07.314Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 7,
               "Title": "MyRequestsViewModel.cs",
               "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Models\\ViewModels\\MyRequestsViewModel.cs",
               "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Models\\ViewModels\\MyRequestsViewModel.cs",
@@ -83,12 +99,11 @@
               "RelativeToolTip": "solicitudMovimientosPcs\\Models\\ViewModels\\MyRequestsViewModel.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-24T00:25:49.784Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-24T00:25:49.784Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
               "Title": "RequestsController.cs",
               "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Controllers\\RequestsController.cs",
               "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Controllers\\RequestsController.cs",
@@ -96,12 +111,11 @@
               "RelativeToolTip": "solicitudMovimientosPcs\\Controllers\\RequestsController.cs",
               "ViewState": "AgIAAGoAAAAAAAAAAAD4v3UAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-24T00:23:15.179Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-24T00:23:15.179Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 4,
               "Title": "Index.cshtml",
               "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Views\\AprobacionesEtapa\\Index.cshtml",
               "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Views\\AprobacionesEtapa\\Index.cshtml",
@@ -109,12 +123,11 @@
               "RelativeToolTip": "solicitudMovimientosPcs\\Views\\AprobacionesEtapa\\Index.cshtml",
               "ViewState": "AgIAAD8AAAAAAAAAAAAAwEoAAAA4AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-10-24T00:18:25.352Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-24T00:18:25.352Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 8,
               "Title": "Index.cshtml",
               "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Views\\Aprobaciones\\Index.cshtml",
               "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Views\\Aprobaciones\\Index.cshtml",
@@ -122,12 +135,11 @@
               "RelativeToolTip": "solicitudMovimientosPcs\\Views\\Aprobaciones\\Index.cshtml",
               "ViewState": "AgIAAFoAAAAAAAAAAAAAABoAAAA/AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-10-24T00:16:52.234Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-24T00:16:52.234Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 5,
               "Title": "Details.cshtml",
               "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Views\\AprobacionesEtapa\\Details.cshtml",
               "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Views\\AprobacionesEtapa\\Details.cshtml",
@@ -135,12 +147,11 @@
               "RelativeToolTip": "solicitudMovimientosPcs\\Views\\AprobacionesEtapa\\Details.cshtml",
               "ViewState": "AgIAAAAAAAAAAAAAAAAIwBwAAAAQAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-10-24T00:10:57.013Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-24T00:10:57.013Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
               "Title": "AprobacionesEtapaController.cs",
               "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Controllers\\AprobacionesEtapaController.cs",
               "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Controllers\\AprobacionesEtapaController.cs",
@@ -148,12 +159,11 @@
               "RelativeToolTip": "solicitudMovimientosPcs\\Controllers\\AprobacionesEtapaController.cs",
               "ViewState": "AgIAAJ4AAAAAAAAAAAAwwN0AAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-23T23:59:28.516Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-23T23:59:28.516Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 9,
               "Title": "ApprovalStatus.cs",
               "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Models\\Enums\\ApprovalStatus.cs",
               "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Models\\Enums\\ApprovalStatus.cs",
@@ -161,12 +171,11 @@
               "RelativeToolTip": "solicitudMovimientosPcs\\Models\\Enums\\ApprovalStatus.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-23T23:58:37.123Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-23T23:58:37.123Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 10,
               "Title": "RequestStatus.cs",
               "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Models\\Enums\\RequestStatus.cs",
               "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Models\\Enums\\RequestStatus.cs",
@@ -174,21 +183,19 @@
               "RelativeToolTip": "solicitudMovimientosPcs\\Models\\Enums\\RequestStatus.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-23T23:57:47.294Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-23T23:57:47.294Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 1,
               "Title": "Create.cshtml",
               "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Views\\Requests\\Create.cshtml",
               "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Views\\Requests\\Create.cshtml",
               "ToolTip": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Views\\Requests\\Create.cshtml",
               "RelativeToolTip": "solicitudMovimientosPcs\\Views\\Requests\\Create.cshtml",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAANkBAAANAAAAAAAAAA==",
+              "ViewState": "AgIAACUAAAAAAAAAAAAkwDkAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-10-23T22:21:53.028Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-23T22:21:53.028Z"
             }
           ]
         }

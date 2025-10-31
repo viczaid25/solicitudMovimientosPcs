@@ -46,20 +46,16 @@
                 <!-- DEPARTAMENTO (requerido): Lista fija, deshabilitado visual + hidden para enviar -->
                 <div class="col-md-3">
                     <label class="form-label req">Departamento</label>
-                    <select class="form-select" disabled>
-                        @{
-                            var dept = Model.Departamento ?? "";
-                            string[] opcionesDept = new[] { "MELX", "SAL", "IT", "PD", "LGL", "PRC", "TOP", "HR", "FIN", "QC", "PC", "FC" };
-                        }
-                        @foreach (var d in opcionesDept)
+                    <select asp-for="Departamento" class="form-select" required>
+                        <option value="">-- Selecciona --</option>
+                        @foreach (var d in new[] { "MELX", "SAL", "IT", "PD", "LGL", "PRC", "TOP", "HR", "FIN", "QC", "PC", "FC" })
                         {
-                            <option value="@d" selected="@(dept == d)">@d</option>
+                            <option value="@d">@d</option>
                         }
                     </select>
-                    <!-- se envía en hidden -->
-                    <input type="hidden" asp-for="Departamento" />
                     <span asp-validation-for="Departamento" class="text-danger"></span>
                 </div>
+
 
                 <!-- LÍNEA (requerido) -->
                 <div class="col-md-3">
