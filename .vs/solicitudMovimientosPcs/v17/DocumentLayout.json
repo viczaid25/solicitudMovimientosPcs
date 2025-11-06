@@ -3,8 +3,52 @@
   "WorkspaceRootPath": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|c:\\users\\dm45207\\source\\repos\\solicitudmovimientospcs\\solicitudmovimientospcs\\views\\pcfinal\\finalizar.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|solutionrelative:solicitudmovimientospcs\\views\\pcfinal\\finalizar.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|c:\\users\\dm45207\\source\\repos\\solicitudmovimientospcs\\solicitudmovimientospcs\\models\\pcmovimientosrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|solutionrelative:solicitudmovimientospcs\\models\\pcmovimientosrequest.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|c:\\users\\dm45207\\source\\repos\\solicitudmovimientospcs\\solicitudmovimientospcs\\models\\pcfinal\\pcfinalizarviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|solutionrelative:solicitudmovimientospcs\\models\\pcfinal\\pcfinalizarviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|c:\\users\\dm45207\\source\\repos\\solicitudmovimientospcs\\solicitudmovimientospcs\\controllers\\pcfinalcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|solutionrelative:solicitudmovimientospcs\\controllers\\pcfinalcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Migrations\\20251103144127_AddPcMovimiento.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:solicitudMovimientosPcs\\Migrations\\20251103144127_AddPcMovimiento.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|c:\\users\\dm45207\\source\\repos\\solicitudmovimientospcs\\solicitudmovimientospcs\\controllers\\aprobacionesetapacontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|solutionrelative:solicitudmovimientospcs\\controllers\\aprobacionesetapacontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Migrations\\20251103140845_AddComments.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:solicitudMovimientosPcs\\Migrations\\20251103140845_AddComments.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|c:\\users\\dm45207\\source\\repos\\solicitudmovimientospcs\\solicitudmovimientospcs\\models\\pcmovimientosaprobaciones.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|solutionrelative:solicitudmovimientospcs\\models\\pcmovimientosaprobaciones.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|c:\\users\\dm45207\\source\\repos\\solicitudmovimientospcs\\solicitudmovimientospcs\\models\\enums\\approvalstatus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|solutionrelative:solicitudmovimientospcs\\models\\enums\\approvalstatus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|c:\\users\\dm45207\\source\\repos\\solicitudmovimientospcs\\solicitudmovimientospcs\\views\\aprobacionesetapa\\details.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|solutionrelative:solicitudmovimientospcs\\views\\aprobacionesetapa\\details.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|c:\\users\\dm45207\\source\\repos\\solicitudmovimientospcs\\solicitudmovimientospcs\\views\\aprobacionesetapa\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|solutionrelative:solicitudmovimientospcs\\views\\aprobacionesetapa\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|c:\\users\\dm45207\\source\\repos\\solicitudmovimientospcs\\solicitudmovimientospcs\\views\\aprobaciones\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|solutionrelative:solicitudmovimientospcs\\views\\aprobaciones\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|c:\\users\\dm45207\\source\\repos\\solicitudmovimientospcs\\solicitudmovimientospcs\\views\\requests\\create.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
@@ -15,32 +59,12 @@
       "RelativeMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|solutionrelative:solicitudmovimientospcs\\controllers\\requestscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|c:\\users\\dm45207\\source\\repos\\solicitudmovimientospcs\\solicitudmovimientospcs\\controllers\\aprobacionesetapacontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|solutionrelative:solicitudmovimientospcs\\controllers\\aprobacionesetapacontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|c:\\users\\dm45207\\source\\repos\\solicitudmovimientospcs\\solicitudmovimientospcs\\views\\aprobacionesetapa\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|solutionrelative:solicitudmovimientospcs\\views\\aprobacionesetapa\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|c:\\users\\dm45207\\source\\repos\\solicitudmovimientospcs\\solicitudmovimientospcs\\views\\aprobacionesetapa\\details.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|solutionrelative:solicitudmovimientospcs\\views\\aprobacionesetapa\\details.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|c:\\users\\dm45207\\source\\repos\\solicitudmovimientospcs\\solicitudmovimientospcs\\views\\requests\\my.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
       "RelativeMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|solutionrelative:solicitudmovimientospcs\\views\\requests\\my.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|c:\\users\\dm45207\\source\\repos\\solicitudmovimientospcs\\solicitudmovimientospcs\\models\\viewmodels\\myrequestsviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|solutionrelative:solicitudmovimientospcs\\models\\viewmodels\\myrequestsviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|c:\\users\\dm45207\\source\\repos\\solicitudmovimientospcs\\solicitudmovimientospcs\\views\\aprobaciones\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
-      "RelativeMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|solutionrelative:solicitudmovimientospcs\\views\\aprobaciones\\index.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|c:\\users\\dm45207\\source\\repos\\solicitudmovimientospcs\\solicitudmovimientospcs\\models\\enums\\approvalstatus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|solutionrelative:solicitudmovimientospcs\\models\\enums\\approvalstatus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{3C5E4285-07E9-4503-A714-8D1CF65CBD87}|solicitudMovimientosPcs\\solicitudMovimientosPcs.csproj|c:\\users\\dm45207\\source\\repos\\solicitudmovimientospcs\\solicitudmovimientospcs\\models\\enums\\requeststatus.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -67,19 +91,97 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "Finalizar.cshtml",
+              "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Views\\PcFinal\\Finalizar.cshtml",
+              "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Views\\PcFinal\\Finalizar.cshtml",
+              "ToolTip": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Views\\PcFinal\\Finalizar.cshtml",
+              "RelativeToolTip": "solicitudMovimientosPcs\\Views\\PcFinal\\Finalizar.cshtml",
+              "ViewState": "AgIAADoAAAAAAAAAAAAkwFgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-11-03T14:51:58.317Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "PcFinalController.cs",
+              "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Controllers\\PcFinalController.cs",
+              "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Controllers\\PcFinalController.cs",
+              "ToolTip": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Controllers\\PcFinalController.cs",
+              "RelativeToolTip": "solicitudMovimientosPcs\\Controllers\\PcFinalController.cs",
+              "ViewState": "AgIAAG0AAAAAAAAAAAAgwI0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-03T14:45:28.65Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "20251103144127_AddPcMovimiento.cs",
+              "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Migrations\\20251103144127_AddPcMovimiento.cs",
+              "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Migrations\\20251103144127_AddPcMovimiento.cs",
+              "ToolTip": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Migrations\\20251103144127_AddPcMovimiento.cs",
+              "RelativeToolTip": "solicitudMovimientosPcs\\Migrations\\20251103144127_AddPcMovimiento.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-03T14:41:27.527Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "PcMovimientosRequest.cs",
+              "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Models\\PcMovimientosRequest.cs",
+              "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Models\\PcMovimientosRequest.cs",
+              "ToolTip": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Models\\PcMovimientosRequest.cs",
+              "RelativeToolTip": "solicitudMovimientosPcs\\Models\\PcMovimientosRequest.cs",
+              "ViewState": "AgIAAC8AAAAAAAAAAAA0wD8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-03T14:40:34.658Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "PcFinalizarViewModel.cs",
+              "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Models\\PcFinal\\PcFinalizarViewModel.cs",
+              "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Models\\PcFinal\\PcFinalizarViewModel.cs",
+              "ToolTip": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Models\\PcFinal\\PcFinalizarViewModel.cs",
+              "RelativeToolTip": "solicitudMovimientosPcs\\Models\\PcFinal\\PcFinalizarViewModel.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAABcAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-03T14:39:41.447Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "20251103140845_AddComments.cs",
+              "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Migrations\\20251103140845_AddComments.cs",
+              "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Migrations\\20251103140845_AddComments.cs",
+              "ToolTip": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Migrations\\20251103140845_AddComments.cs",
+              "RelativeToolTip": "solicitudMovimientosPcs\\Migrations\\20251103140845_AddComments.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-03T14:08:46.121Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
               "Title": "PcMovimientosAprobaciones.cs",
               "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Models\\PcMovimientosAprobaciones.cs",
               "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Models\\PcMovimientosAprobaciones.cs",
               "ToolTip": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Models\\PcMovimientosAprobaciones.cs",
               "RelativeToolTip": "solicitudMovimientosPcs\\Models\\PcMovimientosAprobaciones.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAADwvxQAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAADgAAAAAAAAAAAAAAEcAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-10-31T14:31:05.43Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 14,
               "Title": "My.cshtml",
               "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Views\\Requests\\My.cshtml",
               "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Views\\Requests\\My.cshtml",
@@ -91,7 +193,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 15,
               "Title": "MyRequestsViewModel.cs",
               "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Models\\ViewModels\\MyRequestsViewModel.cs",
               "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Models\\ViewModels\\MyRequestsViewModel.cs",
@@ -103,7 +205,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 13,
               "Title": "RequestsController.cs",
               "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Controllers\\RequestsController.cs",
               "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Controllers\\RequestsController.cs",
@@ -116,57 +218,59 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 10,
               "Title": "Index.cshtml",
               "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Views\\AprobacionesEtapa\\Index.cshtml",
               "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Views\\AprobacionesEtapa\\Index.cshtml",
               "ToolTip": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Views\\AprobacionesEtapa\\Index.cshtml",
               "RelativeToolTip": "solicitudMovimientosPcs\\Views\\AprobacionesEtapa\\Index.cshtml",
-              "ViewState": "AgIAAD8AAAAAAAAAAAAAwEoAAAA4AAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAkAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-10-24T00:18:25.352Z"
+              "WhenOpened": "2025-10-24T00:18:25.352Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 11,
               "Title": "Index.cshtml",
               "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Views\\Aprobaciones\\Index.cshtml",
               "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Views\\Aprobaciones\\Index.cshtml",
               "ToolTip": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Views\\Aprobaciones\\Index.cshtml",
               "RelativeToolTip": "solicitudMovimientosPcs\\Views\\Aprobaciones\\Index.cshtml",
-              "ViewState": "AgIAAFoAAAAAAAAAAAAAABoAAAA/AAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABoAAAA/AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
-              "WhenOpened": "2025-10-24T00:16:52.234Z"
+              "WhenOpened": "2025-10-24T00:16:52.234Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 9,
               "Title": "Details.cshtml",
               "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Views\\AprobacionesEtapa\\Details.cshtml",
               "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Views\\AprobacionesEtapa\\Details.cshtml",
               "ToolTip": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Views\\AprobacionesEtapa\\Details.cshtml",
               "RelativeToolTip": "solicitudMovimientosPcs\\Views\\AprobacionesEtapa\\Details.cshtml",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAIwBwAAAAQAAAAAAAAAA==",
+              "ViewState": "AgIAAIEAAAAAAAAAAAAAACEBAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
               "WhenOpened": "2025-10-24T00:10:57.013Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 5,
               "Title": "AprobacionesEtapaController.cs",
               "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Controllers\\AprobacionesEtapaController.cs",
               "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Controllers\\AprobacionesEtapaController.cs",
               "ToolTip": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Controllers\\AprobacionesEtapaController.cs",
               "RelativeToolTip": "solicitudMovimientosPcs\\Controllers\\AprobacionesEtapaController.cs",
-              "ViewState": "AgIAAJ4AAAAAAAAAAAAwwN0AAAAJAAAAAAAAAA==",
+              "ViewState": "AgIAALAAAAAAAAAAAAAmwKUAAAAkAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-10-23T23:59:28.516Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 8,
               "Title": "ApprovalStatus.cs",
               "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Models\\Enums\\ApprovalStatus.cs",
               "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Models\\Enums\\ApprovalStatus.cs",
@@ -174,11 +278,12 @@
               "RelativeToolTip": "solicitudMovimientosPcs\\Models\\Enums\\ApprovalStatus.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-10-23T23:58:37.123Z"
+              "WhenOpened": "2025-10-23T23:58:37.123Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 16,
               "Title": "RequestStatus.cs",
               "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Models\\Enums\\RequestStatus.cs",
               "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Models\\Enums\\RequestStatus.cs",
@@ -190,13 +295,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 12,
               "Title": "Create.cshtml",
               "DocumentMoniker": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Views\\Requests\\Create.cshtml",
               "RelativeDocumentMoniker": "solicitudMovimientosPcs\\Views\\Requests\\Create.cshtml",
               "ToolTip": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\Views\\Requests\\Create.cshtml",
               "RelativeToolTip": "solicitudMovimientosPcs\\Views\\Requests\\Create.cshtml",
-              "ViewState": "AgIAACUAAAAAAAAAAAAkwDkAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABMCAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
               "WhenOpened": "2025-10-23T22:21:53.028Z",
               "EditorCaption": ""

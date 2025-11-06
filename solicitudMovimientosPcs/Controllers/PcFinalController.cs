@@ -52,29 +52,26 @@ namespace solicitudMovimientosPcs.Controllers
             return View(list);
         }
 
+        // Controllers/PcFinalController.cs (ejemplo)
         [HttpGet]
         public async Task<IActionResult> Finalizar(int id)
         {
             var req = await _db.PcMovimientosRequests
                 .Include(r => r.Items)
-                .Include(r => r.Aprobaciones)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             if (req == null) return NotFound();
 
-            if (!IsFullyApproved(req.Aprobaciones) || req.RequestStatus == RequestStatus.Completado)
-            {
-                TempData["Error"] = "La solicitud no está lista para finalización por PC.";
-                return RedirectToAction(nameof(Index));
-            }
-
             var vm = new PcFinalizarViewModel
             {
-                RequestId = id,
+                RequestId = req.Id,
+                Folio = req.PcFolio, // si lo manejas así
+                TipoMovimiento = req.PcTipoMovimiento, // ← nuevo
                 Request = req
             };
             return View(vm);
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -86,9 +83,16 @@ namespace solicitudMovimientosPcs.Controllers
 
             if (req == null) return NotFound();
 
+            // Validaciones de flujo/estado
             if (!IsFullyApproved(req.Aprobaciones) || req.RequestStatus == RequestStatus.Completado)
                 ModelState.AddModelError(string.Empty, "La solicitud no está lista para finalización por PC.");
 
+            // Validación: TipoMovimiento requerido y dentro del catálogo
+            var allowedTipos = new[] { "FDO", "PDO", "MLO", "ESTATUS" };
+            if (string.IsNullOrWhiteSpace(vm.TipoMovimiento) || !allowedTipos.Contains(vm.TipoMovimiento))
+                ModelState.AddModelError(nameof(vm.TipoMovimiento), "Selecciona un Tipo de Movimiento válido.");
+
+            // Validación: archivo obligatorio
             if (vm.Documento == null || vm.Documento.Length == 0)
                 ModelState.AddModelError(nameof(vm.Documento), "Debes subir un documento.");
 
@@ -121,8 +125,9 @@ namespace solicitudMovimientosPcs.Controllers
 
             var relativePath = $"/uploads/pc/{req.Id}/{fileName}";
 
-            // Actualizar solicitud
-            req.PcFolio = vm.Folio.Trim();
+            // === Actualizar solicitud con los nuevos campos ===
+            req.PcFolio = vm.Folio?.Trim();
+            req.PcTipoMovimiento = vm.TipoMovimiento?.Trim();   // ← Guarda el tipo
             req.PcDocumentoPath = relativePath;
             req.RequestStatus = RequestStatus.Completado;
 
@@ -134,5 +139,6 @@ namespace solicitudMovimientosPcs.Controllers
             TempData["Ok"] = "Solicitud finalizada correctamente.";
             return RedirectToAction(nameof(Index));
         }
+
     }
 }

@@ -7,13 +7,18 @@ namespace solicitudMovimientosPcs.Models.PcFinal
     {
         public int RequestId { get; set; }
 
-        [Required, MaxLength(50)]
-        public string Folio { get; set; } = string.Empty;
+        [Required(ErrorMessage = "El folio es requerido.")]
+        [MaxLength(50)]
+        public string? Folio { get; set; }
 
-        [Required(ErrorMessage = "Debes subir un documento.")]
-        public IFormFile Documento { get; set; } = default!;
+        // ← NUEVO
+        [Required(ErrorMessage = "El tipo de movimiento es requerido.")]
+        [Display(Name = "Tipo de Movimiento")]
+        public string? TipoMovimiento { get; set; }
 
-        // Para mostrar datos en la vista
+        public IFormFile? Documento { get; set; }
+
+        // Para mostrar datos arriba
         public PcMovimientosRequest? Request { get; set; }
     }
 }

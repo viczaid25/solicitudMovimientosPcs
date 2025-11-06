@@ -58,5 +58,6 @@ namespace solicitudMovimientosPcs.Models
         public List<PcMovimientosItem> Items { get; set; } = new();
 
         public PcMovimientosAprobaciones? Aprobaciones { get; set; }
+        public string? PcTipoMovimiento { get; set; }
     }
 }

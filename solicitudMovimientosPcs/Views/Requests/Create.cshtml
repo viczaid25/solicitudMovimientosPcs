@@ -28,7 +28,7 @@
             @Html.AntiForgeryToken()
 
             <div class="row g-3">
-                <!-- FECHA (requerido): Muestra deshabilitado + hidden para enviar -->
+                <!-- FECHA (requerido): deshabilitado visual + hidden para enviar -->
                 <div class="col-md-3">
                     <label class="form-label req">Fecha</label>
                     <input class="form-control" value="@Model.Fecha.ToString("yyyy-MM-dd")" type="date" disabled />
@@ -43,7 +43,7 @@
                     <input type="hidden" name="Solicitante" value="@solicitanteActual" />
                 </div>
 
-                <!-- DEPARTAMENTO (requerido): Lista fija, deshabilitado visual + hidden para enviar -->
+                <!-- DEPARTAMENTO (requerido): lista fija -->
                 <div class="col-md-3">
                     <label class="form-label req">Departamento</label>
                     <select asp-for="Departamento" class="form-select" required>
@@ -56,7 +56,6 @@
                     <span asp-validation-for="Departamento" class="text-danger"></span>
                 </div>
 
-
                 <!-- LÍNEA (requerido) -->
                 <div class="col-md-3">
                     <label class="form-label req">Línea</label>
@@ -67,8 +66,9 @@
                 </div>
 
                 <div class="col-12">
-                    <label asp-for="Comentarios" class="form-label">Comentarios</label>
-                    <textarea asp-for="Comentarios" class="form-control" rows="2"></textarea>
+                    <label asp-for="Comentarios" class="form-label req">Comentarios</label>
+                    <textarea asp-for="Comentarios" class="form-control" rows="2" required></textarea>
+                    <span asp-validation-for="Comentarios" class="text-danger"></span>
                 </div>
 
                 <!-- URGENCIA (requerido) -->
@@ -151,33 +151,44 @@
                     <thead class="table-light">
                         <tr>
                             <th colspan="9" class="text-center">Información actual del material PCS</th>
-                            <th colspan="4" class="text-center">Modificación de PCS Solicitada</th>
+                            <th class="sep-col"></th>
+                            <th colspan="4" class="text-center thead-requested">Modificación de PCS Solicitada</th>
                             <th colspan="1" class="text-center">Diferencia</th>
                             <th colspan="3" class="text-center">Costos</th>
                             <th colspan="1" class="text-center">Acciones</th>
                         </tr>
                         <tr>
-                            <!-- G1 -->
+                            <!-- G1 (Actual) -->
                             <th style="min-width:70px">No.</th>
                             <th style="min-width:140px" class="req">Núm. Parte</th>
                             <th style="min-width:220px" class="req">Descripción</th>
-                            <th style="min-width:240px" class="req">CodMov</th>
-                            <th style="min-width:120px">Case</th>
-                            <th style="min-width:160px">Ubic A (libre)</th>
-                            <th style="min-width:140px">Estatus A</th>
-                            <th style="min-width:120px">Clase A</th>
-                            <th style="min-width:110px">Cant A</th>
-                            <!-- G2 -->
+                            <!-- CodMov más compacto -->
+                            <th style="min-width:170px" class="req">CodMov</th>
+                            <!-- CASE más ancho -->
+                            <th style="min-width:200px" class="req">Case</th>
+                            <th style="min-width:170px" class="req">Ubic A (libre)</th>
+                            <th style="min-width:140px" class="req">Estatus A</th>
+                            <th style="min-width:140px" class="req">Clase A</th>
+                            <th style="min-width:120px" class="req">Cant A</th>
+
+                            <!-- Separador visual -->
+                            <th class="sep-col"></th>
+
+                            <!-- G2 (Solicitado) -->
                             <th style="min-width:140px">Estatus D</th>
                             <th style="min-width:160px">Ubic D</th>
-                            <th style="min-width:120px">Clase D</th>
-                            <th style="min-width:110px">Cant D</th>
+                            <th style="min-width:140px">Clase D</th>
+                            <!-- Cant D con decimales -->
+                            <th style="min-width:120px">Cant D</th>
+
                             <!-- G3 -->
                             <th style="min-width:120px">Diferencia</th>
+
                             <!-- G4 -->
                             <th style="min-width:120px">Moneda</th>
                             <th style="min-width:130px">Costo U</th>
                             <th style="min-width:140px">Total</th>
+
                             <!-- G5 -->
                             <th style="min-width:90px">Acciones</th>
                         </tr>
@@ -186,7 +197,7 @@
                         @for (int i = 0; i < Model.Items.Count; i++)
                         {
                             <tr>
-                                <!-- No. -> no editable (readonly) y sin spinners (usamos text) -->
+                                <!-- No. -> readonly -->
                                 <td>
                                     <input class="form-control" asp-for="Items[@i].Numero" type="text" readonly />
                                 </td>
@@ -200,25 +211,28 @@
                                     </select>
                                 </td>
 
-                                <td><input class="form-control to-upper" asp-for="Items[@i].Case" /></td>
+                                <td><input class="form-control to-upper" asp-for="Items[@i].Case" required /></td>
 
                                 <td>
-                                    <input class="form-control to-upper" asp-for="Items[@i].UbicacionA" />
+                                    <input class="form-control to-upper" asp-for="Items[@i].UbicacionA" required />
                                 </td>
                                 <td>
-                                    <select class="form-select" asp-for="Items[@i].EstatusA" asp-items="estatus">
+                                    <select class="form-select" asp-for="Items[@i].EstatusA" asp-items="estatus" required>
                                         <option value=""></option>
                                     </select>
                                 </td>
                                 <td>
-                                    <select class="form-select" asp-for="Items[@i].ClaseA" asp-items="clases">
+                                    <select class="form-select" asp-for="Items[@i].ClaseA" asp-items="clases" required>
                                         <option value=""></option>
                                     </select>
                                 </td>
                                 <td>
                                     <input class="form-control qtyA no-spinners" asp-for="Items[@i].CantidadA"
-                                           type="number" step="1" inputmode="numeric" pattern="[0-9]*" />
+                                           type="number" step="1" inputmode="decimal" required />
                                 </td>
+
+                                <!-- Separador -->
+                                <td class="sep-col"></td>
 
                                 <!-- G2 -->
                                 <td>
@@ -237,17 +251,19 @@
                                     </select>
                                 </td>
                                 <td>
+                                    <!-- Cant D con decimales y readonly (se calcula) -->
                                     <input class="form-control qtyD no-spinners"
                                            asp-for="Items[@i].CantidadD"
-                                           type="number" step="1" inputmode="numeric" pattern="[0-9]*"
+                                           type="number" step="0.01" inputmode="decimal"
                                            readonly />
                                 </td>
 
                                 <!-- G3 -->
                                 <td>
+                                    <!-- Diferencia editable (entera o decimal, deja 0.01 por flexibilidad) -->
                                     <input class="form-control diff"
                                            asp-for="Items[@i].Diferencia"
-                                           type="number" step="1" />
+                                           type="number" step="0.01" />
                                 </td>
 
                                 <!-- G4 -->
@@ -293,8 +309,20 @@
             white-space: nowrap;
         }
 
+        /* Un poco más ancha para el nuevo layout */
         .table-wide {
-            min-width: 2600px;
+            min-width: 2650px;
+        }
+
+        /* Separador vertical entre "Actual" y "Solicitado" */
+        .sep-col {
+            width: 8px;
+            border-left: 3px solid #2c5fa8 !important;
+            background: #f1f5ff;
+        }
+
+        .thead-requested {
+            background: #f6f9ff;
         }
 
         /* Ocultar spinners de number si los hubiera */
@@ -308,7 +336,7 @@
             -moz-appearance: textfield;
         }
 
-        /* Visual: forzar mayúsculas en inputs de texto */
+        /* Mayúsculas visuales en inputs de texto */
         .to-upper {
             text-transform: uppercase;
         }
@@ -325,9 +353,7 @@
             form.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') {
                     const tag = e.target.tagName.toLowerCase();
-                    if (tag !== 'textarea' && tag !== 'button') {
-                        e.preventDefault();
-                    }
+                    if (tag !== 'textarea' && tag !== 'button') e.preventDefault();
                 }
             });
 
@@ -346,20 +372,19 @@
             function toNum(v){ return parseFloat((v || '0').toString().replace(',', '.')) || 0 }
 
             function recalcRow(tr){
-              const qtyA = toNum(tr.querySelector('.qtyA')?.value);
-              const diff = toNum(tr.querySelector('.diff')?.value);
-              const cost = toNum(tr.querySelector('.costU')?.value);
+              const qtyA  = toNum(tr.querySelector('.qtyA')?.value);
+              const diff  = toNum(tr.querySelector('.diff')?.value);
+              const cost  = toNum(tr.querySelector('.costU')?.value);
 
-              // Nueva lógica: CantA - Diferencia = CantD
+              // Regla: CantA - Diferencia = CantD
               const qtyD = qtyA - diff;
 
-              // Escribimos CantD (readonly)
+              // Cant D con decimales (no truncar)
               const qtyDInput = tr.querySelector('.qtyD');
-              if (qtyDInput) qtyDInput.value = Number.isFinite(qtyD) ? Math.trunc(qtyD) : 0;
+              if (qtyDInput) qtyDInput.value = Number.isFinite(qtyD) ? qtyD.toFixed(2) : '0.00';
 
-              // Total: usa CantD (si no es válido, 0)
+              // Total basado en CantD
               const total = (Number.isFinite(qtyD) ? qtyD : 0) * cost;
-
               const totalInput = tr.querySelector('.total');
               if (totalInput) totalInput.value = Number.isFinite(total) ? total.toFixed(2) : '0.00';
             }
@@ -381,22 +406,24 @@
                     <td><input class="form-control to-upper" name="Items[${idx}].NumParte" required /></td>
                     <td><input class="form-control to-upper" name="Items[${idx}].Descripcion" required /></td>
                     <td><select class="form-select" name="Items[${idx}].CodMov" required>${tpl.cods}</select></td>
-                    <td><input class="form-control to-upper" name="Items[${idx}].Case" /></td>
-                    <td><input class="form-control to-upper" name="Items[${idx}].UbicacionA" /></td>
-                    <td><select class="form-select" name="Items[${idx}].EstatusA">${tpl.est}</select></td>
-                    <td><select class="form-select" name="Items[${idx}].ClaseA">${tpl.clases}</select></td>
-                    <td><input class="form-control qtyA no-spinners" name="Items[${idx}].CantidadA" type="number" step="1" inputmode="numeric" pattern="[0-9]*" /></td>
+                    <td><input class="form-control to-upper" name="Items[${idx}].Case" required /></td>
+                    <td><input class="form-control to-upper" name="Items[${idx}].UbicacionA" required /></td>
+                    <td><select class="form-select" name="Items[${idx}].EstatusA" required>${tpl.est}</select></td>
+                    <td><select class="form-select" name="Items[${idx}].ClaseA" required>${tpl.clases}</select></td>
+                    <td><input class="form-control qtyA no-spinners" name="Items[${idx}].CantidadA" type="number" step="1" inputmode="decimal" required /></td>
+
+                    <td class="sep-col"></td>
 
                     <td><select class="form-select" name="Items[${idx}].EstatusD">${tpl.est}</select></td>
                     <td><select class="form-select" name="Items[${idx}].UbicacionD">${tpl.ubics}</select></td>
                     <td><select class="form-select" name="Items[${idx}].ClaseD">${tpl.clases}</select></td>
-                    <td><input class="form-control qtyD no-spinners" name="Items[${idx}].CantidadD" type="number" step="1" inputmode="numeric" pattern="[0-9]*" readonly /></td>
+                    <td><input class="form-control qtyD no-spinners" name="Items[${idx}].CantidadD" type="number" step="0.01" inputmode="decimal" readonly /></td>
 
-                    <td><input class="form-control diff"  name="Items[${idx}].Diferencia" type="number" step="1" /></td>
+                    <td><input class="form-control diff"  name="Items[${idx}].Diferencia" type="number" step="0.01" /></td>
 
                     <td><select class="form-select" name="Items[${idx}].Moneda">${tpl.mon}</select></td>
                     <td><input class="form-control costU" name="Items[${idx}].CostoU" type="number" step="0.01" /></td>
-                    <td><input class="form-control total" name="Items[${idx}].Total"      type="number" step="0.01" readonly /></td>
+                    <td><input class="form-control total" name="Items[${idx}].Total" type="number" step="0.01" readonly /></td>
 
                     <td class="text-center">
                         <button type="button" class="btn btn-sm btn-outline-danger btn-del" title="Eliminar fila">
@@ -464,15 +491,15 @@
                 };
             }
 
-            // Dispara recálculo ante cambios en CantA, Diferencia o Costo U
+            // Recalcular ante cambios en CantA, Diferencia o Costo U
             tableBody.addEventListener('input', function(e){
               if (e.target.matches('.qtyA, .diff, .costU')) {
                 const tr = e.target.closest('tr');
                 recalcRow(tr);
               }
-              // Uppercase en inputs de texto
+              // Uppercase visual en inputs de texto
               if (e.target.tagName === 'INPUT' && e.target.type === 'text') {
-                e.target.value = e.target.value.toUpperCase();
+                e.target.value = (e.target.value || '').toUpperCase();
               }
             });
 

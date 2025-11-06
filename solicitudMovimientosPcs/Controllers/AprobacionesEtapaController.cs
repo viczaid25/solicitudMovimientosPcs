@@ -154,30 +154,70 @@ namespace solicitudMovimientosPcs.Controllers
             return RedirectToAction(nameof(Index), new { stage = st });
         }
 
-        [HttpPost]
+        // ======= MODIFICAR (manda a edición del solicitante) =======
+        [HttpPost("MODIFY/{id:int}")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Modify(int id, string stage)
+        public async Task<IActionResult> Modify(string stage, int id, string comments)
         {
-            var user = User.FindFirst("DisplayName")?.Value ?? User.Identity?.Name ?? "user";
-            var a = await _db.PcMovimientosAprobaciones
-                .Include(x => x.Solicitud)
-                .FirstOrDefaultAsync(x => x.RequestId == id);
+            if (!TryNormalizeStage(stage, out var st)) return NotFound();
 
-            if (a == null) return NotFound();
+            if (string.IsNullOrWhiteSpace(comments))
+            {
+                TempData["Err"] = "Debes indicar comentarios para mandar a modificar.";
+                return RedirectToAction(nameof(Details), new { stage = st, id });
+            }
 
-            // Marca la etapa actual como MODIFY
-            bool ok = SetStageStatus(a, stage, ApprovalStatus.MODIFY, user, DateTime.Now);
-            if (!ok) return BadRequest("Etapa inválida.");
+            var apro = await _db.PcMovimientosAprobaciones
+                .Include(a => a.Solicitud)
+                .FirstOrDefaultAsync(a => a.RequestId == id);
+            if (apro == null) return NotFound();
 
-            // Pasa la solicitud a estado PorModificar para que el solicitante la edite
-            if (a.Solicitud != null)
-                a.Solicitud.RequestStatus = RequestStatus.PorModificar;
+            // Verifica que la etapa esté pendiente y que las previas ya estén aprobadas (igual que en APPROVED/REJECTED)
+            if (!IsPending(apro, st))
+            {
+                TempData["Warn"] = "Esta solicitud ya fue atendida en esta etapa.";
+                return RedirectToAction(nameof(Index), new { stage = st });
+            }
+            if (!PrevApproved(apro, st))
+            {
+                TempData["Warn"] = "La solicitud no ha completado las etapas previas.";
+                return RedirectToAction(nameof(Index), new { stage = st });
+            }
+
+            var user = CurrentUser();
+            var now = DateTime.Now;
+
+            // Si tu enum YA TIENE ApprovalStatus.MODIFY, úsalo; si no, puedes usar REJECTED como marca operativa.
+            SetStageStatus(apro, st, ApprovalStatus.MODIFY, user, now);
+
+            // Guarda el comentario en el campo de la etapa (ver sección 2)
+            SetStageComment(apro, st, comments);
+
+            // Envía la solicitud al solicitante para edición
+            if (apro.Solicitud != null)
+                apro.Solicitud.RequestStatus = RequestStatus.PorModificar;
 
             await _db.SaveChangesAsync();
-            TempData["Msg"] = "Solicitud enviada a modificación.";
-
-            return RedirectToAction(nameof(Index), new { stage });
+            TempData["Ok"] = $"Solicitud #{id} enviada a modificación en {st}.";
+            return RedirectToAction(nameof(Index), new { stage = st });
         }
+
+        private void SetStageComment(PcMovimientosAprobaciones a, string st, string comments)
+        {
+            switch (st)
+            {
+                case "MNG": a.MngComments = comments; break;
+                case "JPN": a.JpnComments = comments; break;
+                case "MC": a.McComments = comments; break;
+                case "PL": a.PlComments = comments; break;
+                case "PCMNG": a.PcMngComments = comments; break;
+                case "PCJPN": a.PcJpnComments = comments; break;
+                case "FINMNG": a.FinMngComments = comments; break;
+                case "FINJPN": a.FinJpnComments = comments; break;
+            }
+        }
+
+
 
         // ======= Helpers de flujo/propiedades por etapa =======
         private bool IsPending(PcMovimientosAprobaciones a, string st) => st switch

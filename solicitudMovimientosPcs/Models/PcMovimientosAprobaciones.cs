@@ -59,7 +59,17 @@ namespace solicitudMovimientosPcs.Models
         [Column("FINJPN_STATUS")] public ApprovalStatus? FinJpnStatus { get; set; }
         [Column("FINJPN_DATE")] public DateTime? FinJpnDate { get; set; }
 
-    
+        public string? MngComments { get; set; }
+        public string? JpnComments { get; set; }
+        public string? McComments { get; set; }
+        public string? PlComments { get; set; }
+        public string? PcMngComments { get; set; }
+        public string? PcJpnComments { get; set; }
+        public string? FinMngComments { get; set; }
+        public string? FinJpnComments { get; set; }
+
+
+
 
     }
 }

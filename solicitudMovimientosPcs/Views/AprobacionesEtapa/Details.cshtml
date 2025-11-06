@@ -8,38 +8,66 @@
 
 <div class="d-flex align-items-center justify-content-between mb-3">
     <h2 class="mb-0">Solicitud #@Model.Id — @stage</h2>
-    <div class="d-flex gap-2">
+
+    <div class="d-flex flex-column align-items-end gap-2" style="min-width:320px">
+        @* Caja de comentarios del aprobador *@
         @if (IsStagePending(apro, stage))
         {
-            if (EtapasPrevAprobadas(apro, stage))
-            {
-                <form asp-controller="AprobacionesEtapa" asp-action="APPROVED"
-                      asp-route-stage="@stage" asp-route-id="@Model.Id"
-                      method="post" class="d-inline">
-                    @Html.AntiForgeryToken()
-                    <button class="btn btn-success"><i class="fas fa-check me-1"></i> Aprobar</button>
-                </form>
-                <form asp-controller="AprobacionesEtapa" asp-action="REJECTED"
-                      asp-route-stage="@stage" asp-route-id="@Model.Id"
-                      method="post" class="d-inline"
-                      onsubmit="return confirm('¿Rechazar la solicitud #@Model.Id en @stage?');">
-                    @Html.AntiForgeryToken()
-                    <button class="btn btn-danger"><i class="fas fa-times me-1"></i> Rechazar</button>
-                </form>
-                
+            <div class="w-100">
+                <label class="form-label fw-semibold">Comentarios del aprobador</label>
+                <textarea id="txtAprobComments" class="form-control" rows="2" placeholder="Explica el motivo (requerido para Modificar/Rechazar)"></textarea>
+            </div>
+        }
 
+        <div class="d-flex gap-2">
+            @if (IsStagePending(apro, stage))
+            {
+                if (EtapasPrevAprobadas(apro, stage))
+                {
+                    <!-- APROBAR -->
+                    <form asp-controller="AprobacionesEtapa" asp-action="APPROVED"
+                          asp-route-stage="@stage" asp-route-id="@Model.Id"
+                          method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button class="btn btn-success">
+                            <i class="fas fa-check me-1"></i> Aprobar
+                        </button>
+                    </form>
+
+                    <!-- MODIFICAR -->
+                    <form id="frmModify" asp-controller="AprobacionesEtapa" asp-action="MODIFY"
+                          asp-route-stage="@stage" asp-route-id="@Model.Id"
+                          method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="comments" id="commentsModify" />
+                        <button type="submit" class="btn btn-warning text-dark">
+                            <i class="fas fa-edit me-1"></i> Mandar a Modificar
+                        </button>
+                    </form>
+
+                    <!-- RECHAZAR -->
+                    <form id="frmReject" asp-controller="AprobacionesEtapa" asp-action="REJECTED"
+                          asp-route-stage="@stage" asp-route-id="@Model.Id"
+                          method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="comments" id="commentsReject" />
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-times me-1"></i> Rechazar
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <span class="badge bg-secondary align-self-center">Esperando etapas previas</span>
+                }
             }
             else
             {
-                <span class="badge bg-secondary">Esperando etapas previas</span>
+                <span class="badge @(EstadoBadge(apro, stage)) align-self-center">
+                    @InfoEtapa(apro, stage)
+                </span>
             }
-        }
-        else
-        {
-            <span class="badge @(EstadoBadge(apro, stage))">
-                @InfoEtapa(apro, stage)
-            </span>
-        }
+        </div>
     </div>
 </div>
 
@@ -223,4 +251,40 @@
         };
         return $"{st}: {user ?? "-"} — {status} — {date?.ToString("yyyy-MM-dd HH:mm")}";
     }
+}
+
+@section Scripts {
+    <script>
+        (function () {
+            const txt = document.getElementById('txtAprobComments');
+            const frmModify = document.getElementById('frmModify');
+            const frmReject = document.getElementById('frmReject');
+
+            function mustHaveComments(e, hiddenId){
+                const val = (txt?.value || '').trim();
+                if (!val) {
+                    e.preventDefault();
+                    alert('Por favor especifica comentarios para Modificar/Rechazar.');
+                    txt?.focus();
+                    return false;
+                }
+                const hid = document.getElementById(hiddenId);
+                if (hid) hid.value = val;
+                return true;
+            }
+
+            if (frmModify) {
+                frmModify.addEventListener('submit', function (e) {
+                    mustHaveComments(e, 'commentsModify');
+                });
+            }
+            if (frmReject) {
+                frmReject.addEventListener('submit', function (e) {
+                    // Confirmación adicional opcional
+                    if (!confirm('¿Rechazar la solicitud?')) { e.preventDefault(); return; }
+                    mustHaveComments(e, 'commentsReject');
+                });
+            }
+        })();
+    </script>
 }

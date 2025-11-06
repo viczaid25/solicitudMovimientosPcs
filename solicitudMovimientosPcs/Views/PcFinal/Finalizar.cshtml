@@ -40,6 +40,19 @@
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="RequestId" />
 
+            <!-- NUEVO: Tipo de Movimiento -->
+            <div>
+                <label asp-for="TipoMovimiento" class="form-label">Tipo de Movimiento</label>
+                <select asp-for="TipoMovimiento" class="form-select" required>
+                    <option value="">-- Selecciona --</option>
+                    <option value="FDO">FDO</option>
+                    <option value="PDO">PDO</option>
+                    <option value="MLO">MLO</option>
+                    <option value="ESTATUS">ESTATUS</option>
+                </select>
+                <span asp-validation-for="TipoMovimiento" class="text-danger"></span>
+            </div>
+
             <div>
                 <label asp-for="Folio" class="form-label">Folio PC</label>
                 <input asp-for="Folio" class="form-control" maxlength="50" />
