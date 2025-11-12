@@ -269,6 +269,14 @@
       "PackagePath": "staticwebassets\\sw.js"
     },
     {
+      "Id": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\wwwroot\\uploads\\pc\\14\\20251106143257546_Catálogo Números de Parte Importados MEAX.xlsx",
+      "PackagePath": "staticwebassets\\uploads\\pc\\14\\20251106143257546_Catálogo Números de Parte Importados MEAX.xlsx"
+    },
+    {
+      "Id": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\wwwroot\\uploads\\pc\\18\\20251106143216104_Catálogo Números de Parte Importados MEAX.xlsx",
+      "PackagePath": "staticwebassets\\uploads\\pc\\18\\20251106143216104_Catálogo Números de Parte Importados MEAX.xlsx"
+    },
+    {
       "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.build.solicitudMovimientosPcs.props",
       "PackagePath": "build\\solicitudMovimientosPcs.props"
     },

@@ -804,5 +804,29 @@
       <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-F50DOIBE/gUvcOV2Su4JGoDhvij7RbC/kD/dDK6hyvk="}]]]></EndpointProperties>
       <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"298"},{"Name":"Content-Type","Value":"text/javascript"},{"Name":"ETag","Value":"\u0022F50DOIBE/gUvcOV2Su4JGoDhvij7RbC/kD/dDK6hyvk=\u0022"},{"Name":"Last-Modified","Value":"Thu, 07 Aug 2025 15:56:30 GMT"}]]]></ResponseHeaders>
     </StaticWebAssetEndpoint>
+    <StaticWebAssetEndpoint Include="_content/solicitudMovimientosPcs/uploads/pc/14/20251106143257546_Catálogo Números de Parte Importados MEAX.adh6zphlhs.xlsx">
+      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\uploads\pc\14\20251106143257546_Catálogo Números de Parte Importados MEAX.xlsx'))</AssetFile>
+      <Selectors><![CDATA[[]]]></Selectors>
+      <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"adh6zphlhs"},{"Name":"integrity","Value":"sha256-bvSb3gKA/S5ZPVW3kNucRu8DJ7\u002BbtqpEwzKImYhhAkw="},{"Name":"label","Value":"_content/solicitudMovimientosPcs/uploads/pc/14/20251106143257546_Cat\u00E1logo N\u00FAmeros de Parte Importados MEAX.xlsx"}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"352412"},{"Name":"Content-Type","Value":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},{"Name":"ETag","Value":"\u0022bvSb3gKA/S5ZPVW3kNucRu8DJ7\u002BbtqpEwzKImYhhAkw=\u0022"},{"Name":"Last-Modified","Value":"Thu, 06 Nov 2025 14:32:57 GMT"}]]]></ResponseHeaders>
+    </StaticWebAssetEndpoint>
+    <StaticWebAssetEndpoint Include="_content/solicitudMovimientosPcs/uploads/pc/14/20251106143257546_Catálogo Números de Parte Importados MEAX.xlsx">
+      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\uploads\pc\14\20251106143257546_Catálogo Números de Parte Importados MEAX.xlsx'))</AssetFile>
+      <Selectors><![CDATA[[]]]></Selectors>
+      <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-bvSb3gKA/S5ZPVW3kNucRu8DJ7\u002BbtqpEwzKImYhhAkw="}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"352412"},{"Name":"Content-Type","Value":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},{"Name":"ETag","Value":"\u0022bvSb3gKA/S5ZPVW3kNucRu8DJ7\u002BbtqpEwzKImYhhAkw=\u0022"},{"Name":"Last-Modified","Value":"Thu, 06 Nov 2025 14:32:57 GMT"}]]]></ResponseHeaders>
+    </StaticWebAssetEndpoint>
+    <StaticWebAssetEndpoint Include="_content/solicitudMovimientosPcs/uploads/pc/18/20251106143216104_Catálogo Números de Parte Importados MEAX.adh6zphlhs.xlsx">
+      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\uploads\pc\18\20251106143216104_Catálogo Números de Parte Importados MEAX.xlsx'))</AssetFile>
+      <Selectors><![CDATA[[]]]></Selectors>
+      <EndpointProperties><![CDATA[[{"Name":"fingerprint","Value":"adh6zphlhs"},{"Name":"integrity","Value":"sha256-bvSb3gKA/S5ZPVW3kNucRu8DJ7\u002BbtqpEwzKImYhhAkw="},{"Name":"label","Value":"_content/solicitudMovimientosPcs/uploads/pc/18/20251106143216104_Cat\u00E1logo N\u00FAmeros de Parte Importados MEAX.xlsx"}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"max-age=31536000, immutable"},{"Name":"Content-Length","Value":"352412"},{"Name":"Content-Type","Value":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},{"Name":"ETag","Value":"\u0022bvSb3gKA/S5ZPVW3kNucRu8DJ7\u002BbtqpEwzKImYhhAkw=\u0022"},{"Name":"Last-Modified","Value":"Thu, 06 Nov 2025 14:32:16 GMT"}]]]></ResponseHeaders>
+    </StaticWebAssetEndpoint>
+    <StaticWebAssetEndpoint Include="_content/solicitudMovimientosPcs/uploads/pc/18/20251106143216104_Catálogo Números de Parte Importados MEAX.xlsx">
+      <AssetFile>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\uploads\pc\18\20251106143216104_Catálogo Números de Parte Importados MEAX.xlsx'))</AssetFile>
+      <Selectors><![CDATA[[]]]></Selectors>
+      <EndpointProperties><![CDATA[[{"Name":"integrity","Value":"sha256-bvSb3gKA/S5ZPVW3kNucRu8DJ7\u002BbtqpEwzKImYhhAkw="}]]]></EndpointProperties>
+      <ResponseHeaders><![CDATA[[{"Name":"Accept-Ranges","Value":"bytes"},{"Name":"Cache-Control","Value":"no-cache"},{"Name":"Content-Length","Value":"352412"},{"Name":"Content-Type","Value":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},{"Name":"ETag","Value":"\u0022bvSb3gKA/S5ZPVW3kNucRu8DJ7\u002BbtqpEwzKImYhhAkw=\u0022"},{"Name":"Last-Modified","Value":"Thu, 06 Nov 2025 14:32:16 GMT"}]]]></ResponseHeaders>
+    </StaticWebAssetEndpoint>
   </ItemGroup>
 </Project>

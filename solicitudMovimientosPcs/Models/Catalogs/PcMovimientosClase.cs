@@ -10,5 +10,8 @@ namespace solicitudMovimientosPcs.Models.Catalogs
         [MaxLength(10)]
         [Column("CLASS_CODE")]
         public string ClassCode { get; set; } = string.Empty; // PK natural
+
+        [StringLength(200)]
+        public string? Description { get; set; }
     }
 }

@@ -64,3 +64,5 @@ wwwroot\lib\jquery-validation-unobtrusive\jquery.validate.unobtrusive.min.js
 wwwroot\lib\jquery-validation-unobtrusive\LICENSE.txt
 wwwroot\manifest.json
 wwwroot\sw.js
+wwwroot\uploads\pc\14\20251106143257546_Catálogo Números de Parte Importados MEAX.xlsx
+wwwroot\uploads\pc\18\20251106143216104_Catálogo Números de Parte Importados MEAX.xlsx

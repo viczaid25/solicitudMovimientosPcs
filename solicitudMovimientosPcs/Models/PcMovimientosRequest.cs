@@ -59,5 +59,7 @@ namespace solicitudMovimientosPcs.Models
 
         public PcMovimientosAprobaciones? Aprobaciones { get; set; }
         public string? PcTipoMovimiento { get; set; }
+        public string? PcTiposMovimiento { get; set; } 
+
     }
 }

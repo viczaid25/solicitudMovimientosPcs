@@ -7715,6 +7715,170 @@
           "Value": "sha256-F50DOIBE/gUvcOV2Su4JGoDhvij7RbC/kD/dDK6hyvk="
         }
       ]
+    },
+    {
+      "Route": "uploads/pc/14/20251106143257546_Catálogo Números de Parte Importados MEAX.adh6zphlhs.xlsx",
+      "AssetFile": "uploads/pc/14/20251106143257546_Catálogo Números de Parte Importados MEAX.xlsx",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "352412"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"bvSb3gKA/S5ZPVW3kNucRu8DJ7+btqpEwzKImYhhAkw=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 06 Nov 2025 14:32:57 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "adh6zphlhs"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-bvSb3gKA/S5ZPVW3kNucRu8DJ7+btqpEwzKImYhhAkw="
+        },
+        {
+          "Name": "label",
+          "Value": "uploads/pc/14/20251106143257546_Catálogo Números de Parte Importados MEAX.xlsx"
+        }
+      ]
+    },
+    {
+      "Route": "uploads/pc/14/20251106143257546_Catálogo Números de Parte Importados MEAX.xlsx",
+      "AssetFile": "uploads/pc/14/20251106143257546_Catálogo Números de Parte Importados MEAX.xlsx",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "352412"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"bvSb3gKA/S5ZPVW3kNucRu8DJ7+btqpEwzKImYhhAkw=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 06 Nov 2025 14:32:57 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-bvSb3gKA/S5ZPVW3kNucRu8DJ7+btqpEwzKImYhhAkw="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/pc/18/20251106143216104_Catálogo Números de Parte Importados MEAX.adh6zphlhs.xlsx",
+      "AssetFile": "uploads/pc/18/20251106143216104_Catálogo Números de Parte Importados MEAX.xlsx",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "352412"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"bvSb3gKA/S5ZPVW3kNucRu8DJ7+btqpEwzKImYhhAkw=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 06 Nov 2025 14:32:16 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "adh6zphlhs"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-bvSb3gKA/S5ZPVW3kNucRu8DJ7+btqpEwzKImYhhAkw="
+        },
+        {
+          "Name": "label",
+          "Value": "uploads/pc/18/20251106143216104_Catálogo Números de Parte Importados MEAX.xlsx"
+        }
+      ]
+    },
+    {
+      "Route": "uploads/pc/18/20251106143216104_Catálogo Números de Parte Importados MEAX.xlsx",
+      "AssetFile": "uploads/pc/18/20251106143216104_Catálogo Números de Parte Importados MEAX.xlsx",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "352412"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"bvSb3gKA/S5ZPVW3kNucRu8DJ7+btqpEwzKImYhhAkw=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 06 Nov 2025 14:32:16 GMT"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-bvSb3gKA/S5ZPVW3kNucRu8DJ7+btqpEwzKImYhhAkw="
+        }
+      ]
     }
   ]
 }

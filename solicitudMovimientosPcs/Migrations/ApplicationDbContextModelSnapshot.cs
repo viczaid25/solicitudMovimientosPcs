@@ -29,6 +29,10 @@ namespace solicitudMovimientosPcs.Migrations
                         .HasColumnType("nvarchar(10)")
                         .HasColumnName("CLASS_CODE");
 
+                    b.Property<string>("Description")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.HasKey("ClassCode");
 
                     b.ToTable("PC_MOVIMIENTOS_CLASES", (string)null);
@@ -434,6 +438,9 @@ namespace solicitudMovimientosPcs.Migrations
                         .HasColumnName("PC_FOLIO");
 
                     b.Property<string>("PcTipoMovimiento")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PcTiposMovimiento")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RequestStatus")

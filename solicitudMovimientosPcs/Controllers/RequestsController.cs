@@ -81,19 +81,27 @@ namespace solicitudMovimientosPcs.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
-        [Bind("Fecha,Departamento,Linea,Comentarios,Urgencia,Items")]
-        PcMovimientosRequest form)
+    [Bind("Fecha,Departamento,Linea,Comentarios,Urgencia,Items")] PcMovimientosRequest form,
+    [FromForm] string[]? TiposMovimiento) // ← aquí llegan FDO/PDO/MLO/ESTATUS
         {
-            // 1) Fija el solicitante desde el usuario autenticado
             var solicitante = User.FindFirst("DisplayName")?.Value ?? User.Identity?.Name ?? string.Empty;
             form.Solicitante = solicitante;
 
-            // 2) Quita errores previos de ModelState para este campo y revalida
             ModelState.Remove(nameof(PcMovimientosRequest.Solicitante));
-            // Si quieres revalidar todo el objeto con el nuevo valor:
             TryValidateModel(form);
 
-            // 3) Tus demás validaciones
+            // Normaliza selección (CSV) para persistir
+            var tiposSet = (TiposMovimiento ?? Array.Empty<string>())
+                            .Select(t => t?.Trim().ToUpperInvariant())
+                            .Where(t => t is "FDO" or "PDO" or "MLO" or "ESTATUS")
+                            .Distinct()
+                            .ToArray();
+            form.PcTiposMovimiento = string.Join(",", tiposSet);
+
+            // Validaciones habituales…
+            if (string.IsNullOrWhiteSpace(form.Comentarios))
+                ModelState.AddModelError(nameof(form.Comentarios), "Comentarios es requerido.");
+
             if (form.Items == null || form.Items.Count == 0)
                 ModelState.AddModelError("", "Debes agregar al menos un item.");
 
@@ -103,9 +111,7 @@ namespace solicitudMovimientosPcs.Controllers
                 return View(form);
             }
 
-            // 4) Continúa con tu lógica de guardado
-            form.RequestStatus = RequestStatus.Nuevo;
-
+            // Cálculos de items (resumen)
             for (int i = 0; i < form.Items.Count; i++)
             {
                 var it = form.Items[i];
@@ -114,14 +120,15 @@ namespace solicitudMovimientosPcs.Controllers
                 if (it.Numero <= 0) it.Numero = i + 1;
 
                 var a = it.CantidadA ?? 0m;
-                var diff = it.Diferencia ?? 0m;
+                var d = it.CantidadD ?? 0m;
+                it.Diferencia = d - a;
 
-                it.CantidadD = a - diff;
-
-                var qtyBase = it.CantidadD != 0 ? it.CantidadD : a;
+                var qtyBase = d != 0 ? d : a;
                 it.Total = (it.CostoU ?? 0m) * qtyBase;
             }
 
+            // ¿Se debe saltar FIN? (si hay MLO o ESTATUS)
+            bool skipFin = tiposSet.Contains("MLO") || tiposSet.Contains("ESTATUS");
 
             using var tx = await _db.Database.BeginTransactionAsync();
             try
@@ -132,7 +139,10 @@ namespace solicitudMovimientosPcs.Controllers
                 foreach (var it in form.Items)
                     it.IdSolicitud = form.Id;
 
-                _db.PcMovimientosAprobaciones.Add(new PcMovimientosAprobaciones
+                var now = DateTime.Now;
+                var sys = "SYSTEM";
+
+                var aprob = new PcMovimientosAprobaciones
                 {
                     RequestId = form.Id,
                     MngStatus = ApprovalStatus.PENDING,
@@ -141,13 +151,21 @@ namespace solicitudMovimientosPcs.Controllers
                     PlStatus = ApprovalStatus.PENDING,
                     PcMngStatus = ApprovalStatus.PENDING,
                     PcJpnStatus = ApprovalStatus.PENDING,
-                    FinMngStatus = ApprovalStatus.PENDING,
-                    FinJpnStatus = ApprovalStatus.PENDING
-                });
 
+                    // Si skipFin => márquelas como aprobadas automáticamente
+                    FinMngStatus = skipFin ? ApprovalStatus.APPROVED : ApprovalStatus.PENDING,
+                    FinJpnStatus = skipFin ? ApprovalStatus.APPROVED : ApprovalStatus.PENDING,
+
+                    FinMng = skipFin ? sys : null,
+                    FinJpn = skipFin ? sys : null,
+                    FinMngDate = skipFin ? now : null,
+                    FinJpnDate = skipFin ? now : null
+                };
+
+                _db.PcMovimientosAprobaciones.Add(aprob);
                 await _db.SaveChangesAsync();
-                await tx.CommitAsync();
 
+                await tx.CommitAsync();
                 return RedirectToAction(nameof(Details), new { id = form.Id });
             }
             catch (Exception ex)
@@ -158,6 +176,7 @@ namespace solicitudMovimientosPcs.Controllers
                 return View(form);
             }
         }
+
 
 
         // GET: /Requests/Details/5

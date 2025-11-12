@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "GzulIoa2Jk3ohoFgw2CiKOD4atarM2bMu7w8DQTjxDw=",
+  "Hash": "iA/XbwTwWmi1jI+LKyU3+22bdKtDEnxup2dAJ87/wLA=",
   "Source": "solicitudMovimientosPcs",
   "BasePath": "_content/solicitudMovimientosPcs",
   "Mode": "Default",
@@ -2703,6 +2703,48 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\sw.js"
+    },
+    {
+      "Identity": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\wwwroot\\uploads\\pc\\14\\20251106143257546_Catálogo Números de Parte Importados MEAX.xlsx",
+      "SourceId": "solicitudMovimientosPcs",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\wwwroot\\",
+      "BasePath": "_content/solicitudMovimientosPcs",
+      "RelativePath": "uploads/pc/14/20251106143257546_Catálogo Números de Parte Importados MEAX#[.{fingerprint}]?.xlsx",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "adh6zphlhs",
+      "Integrity": "bvSb3gKA/S5ZPVW3kNucRu8DJ7+btqpEwzKImYhhAkw=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\pc\\14\\20251106143257546_Catálogo Números de Parte Importados MEAX.xlsx"
+    },
+    {
+      "Identity": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\wwwroot\\uploads\\pc\\18\\20251106143216104_Catálogo Números de Parte Importados MEAX.xlsx",
+      "SourceId": "solicitudMovimientosPcs",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\wwwroot\\",
+      "BasePath": "_content/solicitudMovimientosPcs",
+      "RelativePath": "uploads/pc/18/20251106143216104_Catálogo Números de Parte Importados MEAX#[.{fingerprint}]?.xlsx",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "Fingerprint": "adh6zphlhs",
+      "Integrity": "bvSb3gKA/S5ZPVW3kNucRu8DJ7+btqpEwzKImYhhAkw=",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\pc\\18\\20251106143216104_Catálogo Números de Parte Importados MEAX.xlsx"
     }
   ],
   "Endpoints": [
@@ -10499,6 +10541,170 @@
         {
           "Name": "integrity",
           "Value": "sha256-F50DOIBE/gUvcOV2Su4JGoDhvij7RbC/kD/dDK6hyvk="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/pc/14/20251106143257546_Catálogo Números de Parte Importados MEAX.adh6zphlhs.xlsx",
+      "AssetFile": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\wwwroot\\uploads\\pc\\14\\20251106143257546_Catálogo Números de Parte Importados MEAX.xlsx",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "352412"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"bvSb3gKA/S5ZPVW3kNucRu8DJ7+btqpEwzKImYhhAkw=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 06 Nov 2025 14:32:57 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "adh6zphlhs"
+        },
+        {
+          "Name": "label",
+          "Value": "uploads/pc/14/20251106143257546_Catálogo Números de Parte Importados MEAX.xlsx"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-bvSb3gKA/S5ZPVW3kNucRu8DJ7+btqpEwzKImYhhAkw="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/pc/14/20251106143257546_Catálogo Números de Parte Importados MEAX.xlsx",
+      "AssetFile": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\wwwroot\\uploads\\pc\\14\\20251106143257546_Catálogo Números de Parte Importados MEAX.xlsx",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "352412"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"bvSb3gKA/S5ZPVW3kNucRu8DJ7+btqpEwzKImYhhAkw=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 06 Nov 2025 14:32:57 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-bvSb3gKA/S5ZPVW3kNucRu8DJ7+btqpEwzKImYhhAkw="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/pc/18/20251106143216104_Catálogo Números de Parte Importados MEAX.adh6zphlhs.xlsx",
+      "AssetFile": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\wwwroot\\uploads\\pc\\18\\20251106143216104_Catálogo Números de Parte Importados MEAX.xlsx",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "352412"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"bvSb3gKA/S5ZPVW3kNucRu8DJ7+btqpEwzKImYhhAkw=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 06 Nov 2025 14:32:16 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "adh6zphlhs"
+        },
+        {
+          "Name": "label",
+          "Value": "uploads/pc/18/20251106143216104_Catálogo Números de Parte Importados MEAX.xlsx"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-bvSb3gKA/S5ZPVW3kNucRu8DJ7+btqpEwzKImYhhAkw="
+        }
+      ]
+    },
+    {
+      "Route": "uploads/pc/18/20251106143216104_Catálogo Números de Parte Importados MEAX.xlsx",
+      "AssetFile": "C:\\Users\\dm45207\\source\\repos\\solicitudMovimientosPcs\\solicitudMovimientosPcs\\wwwroot\\uploads\\pc\\18\\20251106143216104_Catálogo Números de Parte Importados MEAX.xlsx",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "352412"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"bvSb3gKA/S5ZPVW3kNucRu8DJ7+btqpEwzKImYhhAkw=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Thu, 06 Nov 2025 14:32:16 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-bvSb3gKA/S5ZPVW3kNucRu8DJ7+btqpEwzKImYhhAkw="
         }
       ]
     }

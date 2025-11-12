@@ -61,7 +61,6 @@
                 </a>
                 <div id="menuAprobaciones" class="collapse @Show("Aprobaciones")" data-bs-parent="#sidebarAccordion">
                     <ul class="nav flex-column ms-3">
-                        <li class="nav-item"><a class="nav-link @(ctrl=="Aprobaciones" ? "active" : "")" asp-controller="Aprobaciones" asp-action="Index"><i class="fas fa-inbox me-2"></i>Pendientes</a></li>
                         <li class="nav-item"><a class="nav-link @Active("AprobacionesEtapa")" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="MNG">MNG</a></li>
                         <li class="nav-item"><a class="nav-link @Active("AprobacionesEtapa")" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="JPN">JPN</a></li>
                         <li class="nav-item"><a class="nav-link @Active("AprobacionesEtapa")" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="MC">MC</a></li>

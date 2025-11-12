@@ -1,0 +1,125 @@
+﻿@model IEnumerable<solicitudMovimientosPcs.Models.Catalogs.PcMovimientosCodigo>
+@{
+    ViewData["Title"] = "Catálogo de Códigos";
+}
+<div class="card">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-qrcode me-2"></i>Códigos</span>
+        <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#mdlNew">
+            <i class="fas fa-plus me-1"></i> Nuevo código
+        </button>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="tbl" class="table table-hover align-middle">
+                <thead class="table-light"><tr><th>Código</th><th>Descripción</th><th style="width:110px"></th></tr></thead>
+                <tbody>
+                    @foreach (var x in Model ?? Enumerable.Empty<solicitudMovimientosPcs.Models.Catalogs.PcMovimientosCodigo>())
+                    {
+                        <tr>
+                            <td>@x.Codigo</td>
+                            <td>@x.Descripcion</td>
+                            <td class="text-end">
+                                <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#mdlEdit"
+                                        data-codigo="@x.Codigo" data-desc="@x.Descripcion">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <form class="d-inline" asp-action="DeleteCodigo" method="post" asp-route-id="@x.Codigo"
+                                      onsubmit="return confirm('¿Eliminar @x.Codigo?');">
+                                    @Html.AntiForgeryToken()
+                                    <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Nuevo -->
+<div class="modal fade" id="mdlNew" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-action="CreateCodigo">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title">Nuevo código</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body vstack gap-3">
+                    <div>
+                        <label class="form-label req">Código</label>
+                        <input name="Codigo" class="form-control to-upper" required maxlength="10" />
+                    </div>
+                    <div>
+                        <label class="form-label">Descripción</label>
+                        <input name="Descripcion" class="form-control" maxlength="100" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary"><i class="fas fa-save me-1"></i> Guardar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Editar -->
+<div class="modal fade" id="mdlEdit" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-action="EditCodigo">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar código</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body vstack gap-3">
+                    <input type="hidden" name="Codigo" id="eCodigo" />
+                    <div>
+                        <label class="form-label">Descripción</label>
+                        <input name="Descripcion" id="eDesc" class="form-control" maxlength="100" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary"><i class="fas fa-save me-1"></i> Guardar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function(){
+          if (window.jQuery && $.fn.DataTable) {
+            $('#tbl').DataTable({
+              responsive:true,
+              pageLength:25,
+              language:{url:'https://cdn.datatables.net/plug-ins/1.13.4/i18n/es-MX.json'}
+            });
+          }
+          const mdlEdit=document.getElementById('mdlEdit');
+          mdlEdit.addEventListener('show.bs.modal',e=>{
+            const b=e.relatedTarget;
+            document.getElementById('eCodigo').value = b.getAttribute('data-codigo');
+            document.getElementById('eDesc').value   = b.getAttribute('data-desc') || '';
+          });
+        })();
+    </script>
+    <style>
+        .req::after {
+            content: " *";
+            color: #dc3545;
+            font-weight: 700
+        }
+
+        .to-upper {
+            text-transform: uppercase;
+        }
+    </style>
+}

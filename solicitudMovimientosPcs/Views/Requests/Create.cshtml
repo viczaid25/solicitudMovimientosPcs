@@ -79,6 +79,39 @@
                 </div>
             </div>
 
+            <hr class="my-3" />
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label fw-semibold">Tipo de Movimiento (selecciona los que apliquen)</label>
+                    <div class="d-flex flex-wrap gap-3">
+                        @{
+                            // Pre-chequeo si regresas a la vista por validación fallida (leyendo CSV guardado en Model)
+                            var tiposCsv = Model?.PcTiposMovimiento ?? "";
+                            bool chk(string v) => tiposCsv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                            .Any(x => string.Equals(x, v, StringComparison.OrdinalIgnoreCase));
+                        }
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="tmFDO" name="TiposMovimiento" value="FDO" @(chk("FDO") ? "checked" : "") />
+                            <label class="form-check-label" for="tmFDO">FDO</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="tmPDO" name="TiposMovimiento" value="PDO" @(chk("PDO") ? "checked" : "") />
+                            <label class="form-check-label" for="tmPDO">PDO</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="tmMLO" name="TiposMovimiento" value="MLO" @(chk("MLO") ? "checked" : "") />
+                            <label class="form-check-label" for="tmMLO">MLO</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="tmEST" name="TiposMovimiento" value="ESTATUS" @(chk("ESTATUS") ? "checked" : "") />
+                            <label class="form-check-label" for="tmEST">ESTATUS</label>
+                        </div>
+                    </div>
+                    <div class="form-text">Si seleccionas <strong>MLO</strong> o <strong>ESTATUS</strong>, la solicitud no pasará por aprobación de Finanzas.</div>
+                </div>
+            </div>
+
+
             <hr class="my-4" />
 
             <div class="d-flex align-items-center justify-content-between mb-2">

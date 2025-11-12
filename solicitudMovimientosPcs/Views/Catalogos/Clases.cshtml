@@ -1,0 +1,123 @@
+﻿@model IEnumerable<solicitudMovimientosPcs.Models.Catalogs.PcMovimientosClase>
+@{
+    ViewData["Title"] = "Catálogo de Clases";
+}
+<div class="card">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <span><i class="fas fa-tags me-2"></i>Clases</span>
+        <button class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#mdlNew">
+            <i class="fas fa-plus me-1"></i> Nueva clase
+        </button>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="tbl" class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Clase</th>
+                        <th>Descripción</th>
+                        <th style="width:110px"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in Model ?? Enumerable.Empty<solicitudMovimientosPcs.Models.Catalogs.PcMovimientosClase>())
+                    {
+                        <tr>
+                            <td>@c.ClassCode</td>
+                            <td>@c.Description</td>
+                            <td class="text-end">
+                                <button class="btn btn-sm btn-outline-secondary"
+                                        data-bs-toggle="modal" data-bs-target="#mdlEdit"
+                                        data-class="@c.ClassCode" data-desc="@c.Description">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <form class="d-inline" asp-action="DeleteClase" method="post" asp-route-id="@c.ClassCode"
+                                      onsubmit="return confirm('¿Eliminar la clase @c.ClassCode?');">
+                                    @Html.AntiForgeryToken()
+                                    <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Nuevo -->
+<div class="modal fade" id="mdlNew" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-action="CreateClase">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title">Nueva clase</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body vstack gap-3">
+                    <div>
+                        <label class="form-label req">Clase</label>
+                        <input name="ClassCode" class="form-control" required maxlength="20" />
+                    </div>
+                    <div>
+                        <label class="form-label">Descripción</label>
+                        <input name="Description" class="form-control" maxlength="100" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary"><i class="fas fa-save me-1"></i> Guardar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Editar -->
+<div class="modal fade" id="mdlEdit" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-action="EditClase">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar clase</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body vstack gap-3">
+                    <input type="hidden" name="ClassCode" id="eClass" />
+                    <div>
+                        <label class="form-label">Descripción</label>
+                        <input name="Description" id="eDesc" class="form-control" maxlength="100" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary"><i class="fas fa-save me-1"></i> Guardar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function(){
+          if (window.jQuery && $.fn.DataTable) {
+            $('#tbl').DataTable({responsive:true, pageLength:25, language:{url:'https://cdn.datatables.net/plug-ins/1.13.4/i18n/es-MX.json'}});
+          }
+          const mdlEdit = document.getElementById('mdlEdit');
+          mdlEdit.addEventListener('show.bs.modal', e=>{
+            const b = e.relatedTarget;
+            document.getElementById('eClass').value = b.getAttribute('data-class');
+            document.getElementById('eDesc').value  = b.getAttribute('data-desc') || '';
+          });
+        })();
+    </script>
+    <style>
+        .req::after {
+            content: " *";
+            color: #dc3545;
+            font-weight: 700
+        }</style>
+}
