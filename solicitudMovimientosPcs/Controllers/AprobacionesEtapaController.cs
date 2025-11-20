@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using solicitudMovimientosPcs.Data;
 using solicitudMovimientosPcs.Models;
+using solicitudMovimientosPcs.Services;
 
 namespace solicitudMovimientosPcs.Controllers
 {
@@ -14,16 +15,62 @@ namespace solicitudMovimientosPcs.Controllers
     public class AprobacionesEtapaController : Controller
     {
         private readonly ApplicationDbContext _db;
-        public AprobacionesEtapaController(ApplicationDbContext db) => _db = db;
+        private readonly IEmailService _email;
+        private readonly Dictionary<string, string> _destinos;
+
+        private static readonly string[] Flow = new[] { "MNG", "JPN", "MC", "PL", "PCMNG", "PCJPN", "FINMNG", "FINJPN" };
+
+        public AprobacionesEtapaController(
+        ApplicationDbContext db,
+        IEmailService email,
+        Dictionary<string, string> destinos) 
+        {
+            _db = db;
+            _email = email;
+            _destinos = destinos; 
+        }
+
+
+        // Helper para saber la siguiente etapa
+        private string? NextStage(string current)
+        {
+            var idx = Array.IndexOf(Flow, current);
+            if (idx < 0 || idx + 1 >= Flow.Length) return null;
+            return Flow[idx + 1];
+        }
 
         private string CurrentUser() =>
             User.FindFirst("DisplayName")?.Value ?? User.Identity?.Name ?? string.Empty;
 
-        // Orden del flujo (para "gating": exigir aprobaciones previas)
-        private static readonly string[] Flow = new[]
+        private string? ResolveEmail(string displayOrEmail)
         {
-            "MNG","JPN","MC","PL","PCMNG","PCJPN","FINMNG","FINJPN"
-        };
+            if (string.IsNullOrWhiteSpace(displayOrEmail)) return null;
+            // Si ya viene correo, lo usamos
+            if (displayOrEmail.Contains("@")) return displayOrEmail.Trim();
+
+            // TODO: Cambia a tu lógica real (ej. consulta AD/tabla de usuarios)
+            // Mientras tanto, convención temporal:
+            // p.ej. "Juan Perez" -> "juan.perez@meax.mx"
+            var norm = displayOrEmail.Trim().ToLowerInvariant().Replace(' ', '.');
+            return $"{norm}@meax.mx";
+        }
+
+        // Notificar al solicitante
+        private async Task NotifyAsync(PcMovimientosRequest req, string subject, string html)
+        {
+            var to = ResolveEmail(req.Solicitante);
+            if (to == null) return;
+            try { await _email.SendAsync(to, subject, html); } catch { }
+        }
+
+        // (Opcional) notificar también al siguiente aprobador de la cadena:
+        private string[] NextStageRecipients(string stage, PcMovimientosAprobaciones a)
+        {
+            // TODO: Implementa si tienes mapeo de correos por etapa/responsable
+            return Array.Empty<string>();
+        }
+
+
 
         private bool TryNormalizeStage(string stage, out string norm)
         {
@@ -89,7 +136,7 @@ namespace solicitudMovimientosPcs.Controllers
         // ======= APROBAR =======
         [HttpPost("APPROVED/{id:int}")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> APPROVED(string stage, int id)
+        public async Task<IActionResult> APPROVED(string stage, int id, [FromForm] string? comentario)
         {
             if (!TryNormalizeStage(stage, out var st)) return NotFound();
 
@@ -98,24 +145,36 @@ namespace solicitudMovimientosPcs.Controllers
                 .FirstOrDefaultAsync(a => a.RequestId == id);
             if (apro == null) return NotFound();
 
-            if (!IsPending(apro, st))
-            {
-                TempData["Warn"] = "Esta solicitud ya fue atendida en esta etapa.";
-                return RedirectToAction(nameof(Index), new { stage = st });
-            }
-            if (!PrevApproved(apro, st))
-            {
-                TempData["Warn"] = "La solicitud no ha completado las etapas previas.";
-                return RedirectToAction(nameof(Index), new { stage = st });
-            }
+            if (!IsPending(apro, st)) { TempData["Warn"] = "Esta solicitud ya fue atendida en esta etapa."; return RedirectToAction(nameof(Index), new { stage = st }); }
+            if (!PrevApproved(apro, st)) { TempData["Warn"] = "La solicitud no ha completado las etapas previas."; return RedirectToAction(nameof(Index), new { stage = st }); }
 
             SetApproval(apro, st, CurrentUser(), ApprovalStatus.APPROVED, DateTime.Now);
 
-            // Opcional: primer avance pone la solicitud EnProceso
             if (st == "MNG" && apro.Solicitud != null && apro.Solicitud.RequestStatus == RequestStatus.Nuevo)
                 apro.Solicitud.RequestStatus = RequestStatus.EnProceso;
 
             await _db.SaveChangesAsync();
+
+            // Notifica al solicitante (ya lo tienes si quieres)
+            if (apro.Solicitud != null)
+            {
+                var req = apro.Solicitud;
+                var subj = $"Solicitud #{req.Id} aprobada en {st}";
+                var body = $@"<p>Hola {req.Solicitante},</p>
+                          <p>Tu solicitud <strong>#{req.Id}</strong> fue <strong>aprobada</strong> en <strong>{st}</strong>.</p>
+                          {(string.IsNullOrWhiteSpace(comentario) ? "" : $"<p><em>Comentario:</em> {System.Net.WebUtility.HtmlEncode(comentario)}</p>")}";
+                await _email.SendAsync(ResolveEmail(req.Solicitante) ?? "", subj, body);
+            }
+
+            // <<< NUEVO: Notificar al siguiente aprobador, si existe mapeo >>>
+            var stSiguiente = NextStage(st);
+            if (stSiguiente != null && _destinos.TryGetValue(stSiguiente, out var correo) && !string.IsNullOrWhiteSpace(correo))
+            {
+                var bodyNext = $@"<p>Hay una solicitud lista para tu etapa <strong>{stSiguiente}</strong>.</p>
+                              <p><strong>ID:</strong> {id}</p>";
+                await _email.SendAsync(new[] { correo }, $"Solicitud #{id} lista para {stSiguiente}", bodyNext);
+            }
+
             TempData["Ok"] = $"Solicitud #{id} aprobada en {st}.";
             return RedirectToAction(nameof(Index), new { stage = st });
         }
@@ -123,7 +182,7 @@ namespace solicitudMovimientosPcs.Controllers
         // ======= RECHAZAR =======
         [HttpPost("REJECTED/{id:int}")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> REJECTED(string stage, int id)
+        public async Task<IActionResult> REJECTED(string stage, int id, [FromForm] string? comentario)
         {
             if (!TryNormalizeStage(stage, out var st)) return NotFound();
 
@@ -145,62 +204,63 @@ namespace solicitudMovimientosPcs.Controllers
 
             SetApproval(apro, st, CurrentUser(), ApprovalStatus.REJECTED, DateTime.Now);
 
-            // Si se rechaza en cualquier etapa, marcamos la solicitud como Rechazado
             if (apro.Solicitud != null)
                 apro.Solicitud.RequestStatus = RequestStatus.Rechazado;
 
             await _db.SaveChangesAsync();
+
+            if (apro.Solicitud != null)
+            {
+                var req = apro.Solicitud;
+                var subj = $"Solicitud #{req.Id} rechazada en {st}";
+                var body = $@"
+            <p>Hola {req.Solicitante},</p>
+            <p>Tu solicitud <strong>#{req.Id}</strong> fue <strong>rechazada</strong> en la etapa <strong>{st}</strong>.</p>
+            {(string.IsNullOrWhiteSpace(comentario) ? "" : $"<p><em>Motivo:</em> {System.Net.WebUtility.HtmlEncode(comentario)}</p>")}
+            <p>Fecha: {DateTime.Now:yyyy-MM-dd HH:mm}</p>";
+                await NotifyAsync(req, subj, body);
+            }
+
             TempData["Err"] = $"Solicitud #{id} rechazada en {st}.";
             return RedirectToAction(nameof(Index), new { stage = st });
         }
 
-        // ======= MODIFICAR (manda a edición del solicitante) =======
-        [HttpPost("MODIFY/{id:int}")]
+        // ======= MODIFICAR =======
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Modify(string stage, int id, string comments)
+        public async Task<IActionResult> Modify(int id, string stage, [FromForm] string? comentario)
         {
-            if (!TryNormalizeStage(stage, out var st)) return NotFound();
+            var user = User.FindFirst("DisplayName")?.Value ?? User.Identity?.Name ?? "user";
+            var a = await _db.PcMovimientosAprobaciones
+                .Include(x => x.Solicitud)
+                .FirstOrDefaultAsync(x => x.RequestId == id);
 
-            if (string.IsNullOrWhiteSpace(comments))
-            {
-                TempData["Err"] = "Debes indicar comentarios para mandar a modificar.";
-                return RedirectToAction(nameof(Details), new { stage = st, id });
-            }
+            if (a == null) return NotFound();
 
-            var apro = await _db.PcMovimientosAprobaciones
-                .Include(a => a.Solicitud)
-                .FirstOrDefaultAsync(a => a.RequestId == id);
-            if (apro == null) return NotFound();
+            bool ok = SetStageStatus(a, stage, ApprovalStatus.MODIFY, user, DateTime.Now);
+            if (!ok) return BadRequest("Etapa inválida.");
 
-            // Verifica que la etapa esté pendiente y que las previas ya estén aprobadas (igual que en APPROVED/REJECTED)
-            if (!IsPending(apro, st))
-            {
-                TempData["Warn"] = "Esta solicitud ya fue atendida en esta etapa.";
-                return RedirectToAction(nameof(Index), new { stage = st });
-            }
-            if (!PrevApproved(apro, st))
-            {
-                TempData["Warn"] = "La solicitud no ha completado las etapas previas.";
-                return RedirectToAction(nameof(Index), new { stage = st });
-            }
-
-            var user = CurrentUser();
-            var now = DateTime.Now;
-
-            // Si tu enum YA TIENE ApprovalStatus.MODIFY, úsalo; si no, puedes usar REJECTED como marca operativa.
-            SetStageStatus(apro, st, ApprovalStatus.MODIFY, user, now);
-
-            // Guarda el comentario en el campo de la etapa (ver sección 2)
-            SetStageComment(apro, st, comments);
-
-            // Envía la solicitud al solicitante para edición
-            if (apro.Solicitud != null)
-                apro.Solicitud.RequestStatus = RequestStatus.PorModificar;
+            if (a.Solicitud != null)
+                a.Solicitud.RequestStatus = RequestStatus.PorModificar;
 
             await _db.SaveChangesAsync();
-            TempData["Ok"] = $"Solicitud #{id} enviada a modificación en {st}.";
-            return RedirectToAction(nameof(Index), new { stage = st });
+
+            if (a.Solicitud != null)
+            {
+                var req = a.Solicitud;
+                var subj = $"Solicitud #{req.Id} devuelta para modificación ({stage})";
+                var body = $@"
+            <p>Hola {req.Solicitante},</p>
+            <p>Tu solicitud <strong>#{req.Id}</strong> fue devuelta para <strong>modificación</strong> en la etapa <strong>{stage}</strong>.</p>
+            {(string.IsNullOrWhiteSpace(comentario) ? "" : $"<p><em>Comentarios del aprobador:</em> {System.Net.WebUtility.HtmlEncode(comentario)}</p>")}
+            <p>Por favor realiza los ajustes y reenvíala.</p>";
+                await NotifyAsync(req, subj, body);
+            }
+
+            TempData["Msg"] = "Solicitud enviada a modificación.";
+            return RedirectToAction(nameof(Index), new { stage });
         }
+
 
         private void SetStageComment(PcMovimientosAprobaciones a, string st, string comments)
         {

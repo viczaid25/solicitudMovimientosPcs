@@ -16,6 +16,12 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
+var destinos = builder.Configuration
+    .GetSection("Aprobaciones:Destinatarios")
+    .Get<Dictionary<string, string>>() ?? new Dictionary<string, string>();
+
+builder.Services.AddSingleton<IReadOnlyDictionary<string, string>>(destinos);
+
 // Configurar Identity manualmente
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
@@ -26,6 +32,14 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 
 // Registrar el servicio de Active Directory
 builder.Services.AddSingleton(new ActiveDirectoryService("ad.meax.mx")); // Reemplaza "ad.meax.mx" con tu dominio de AD
+
+// Configurar el servicio de correo electrónico
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+
+// Registrar el diccionario de destinatarios de aprobaciones
+builder.Services.AddSingleton(builder.Configuration.GetSection("Aprobaciones:Destinatarios").Get<Dictionary<string, string>>() ?? new());
+
 
 // Configurar autenticación basada en cookies
 builder.Services.AddAuthentication(options =>

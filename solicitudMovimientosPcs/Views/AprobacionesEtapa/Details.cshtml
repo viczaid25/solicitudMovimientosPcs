@@ -39,7 +39,7 @@
                           asp-route-stage="@stage" asp-route-id="@Model.Id"
                           method="post" class="d-inline">
                         @Html.AntiForgeryToken()
-                        <input type="hidden" name="comments" id="commentsModify" />
+                        <input type="hidden" name="comentario" id="commentsModify" />
                         <button type="submit" class="btn btn-warning text-dark">
                             <i class="fas fa-edit me-1"></i> Mandar a Modificar
                         </button>
@@ -50,7 +50,7 @@
                           asp-route-stage="@stage" asp-route-id="@Model.Id"
                           method="post" class="d-inline">
                         @Html.AntiForgeryToken()
-                        <input type="hidden" name="comments" id="commentsReject" />
+                        <input type="hidden" name="comentario" id="commentsReject" />
                         <button type="submit" class="btn btn-danger">
                             <i class="fas fa-times me-1"></i> Rechazar
                         </button>
@@ -93,35 +93,35 @@
 <div class="card">
     <div class="card-header">Items (@(Model.Items?.Count ?? 0))</div>
     <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-sm mb-0 align-middle">
+        <div class="table-responsive h-scroll">
+            <table class="table table-sm mb-0 align-middle table-wide">
                 <thead class="table-light">
                     <tr>
-                        <th>No.</th>
-                        <th>Núm. Parte</th>
-                        <th>Descripción</th>
-                        <th>Case</th>
-                        <th>CodMov</th>
-                        <th>Clase A</th>
-                        <th>Ubic A</th>
-                        <th>Cant A</th>
-                        <th>Estatus A</th>
-                        <th>Clase D</th>
-                        <th>Ubic D</th>
-                        <th>Cant D</th>
-                        <th>Estatus D</th>
-                        <th>Moneda</th>
-                        <th>Costo U</th>
-                        <th>Diferencia</th>
-                        <th>Total</th>
+                        <th class="col-no">No.</th>
+                        <th class="col-numparte">Núm. Parte</th>
+                        <th class="col-desc">Descripción</th>
+                        <th class="col-case">Case</th>
+                        <th class="col-codmov">CodMov</th>
+                        <th class="col-a">Clase A</th>
+                        <th class="col-a">Ubic A</th>
+                        <th class="col-num">Cant A</th>
+                        <th class="col-a">Estatus A</th>
+                        <th class="col-d">Clase D</th>
+                        <th class="col-d">Ubic D</th>
+                        <th class="col-num">Cant D</th>
+                        <th class="col-d">Estatus D</th>
+                        <th class="col-mon">Moneda</th>
+                        <th class="col-num">Costo U</th>
+                        <th class="col-num">Diferencia</th>
+                        <th class="col-num">Total</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var it in Model.Items ?? new List<PcMovimientosItem>())
                     {
                         <tr>
-                            <td>@it.Numero</td>
-                            <td>@it.NumParte</td>
+                            <td class="sticky-col">@it.Numero</td>
+                            <td class="sticky-col-2">@it.NumParte</td>
                             <td>@it.Descripcion</td>
                             <td>@it.Case</td>
                             <td>@it.CodMov</td>
@@ -287,4 +287,78 @@
             }
         })();
     </script>
+}
+
+@section Styles {
+    <style>
+        .h-scroll {
+            overflow-x: auto;
+        }
+
+        .table-wide {
+            min-width: 1600px;
+        }
+            /* fuerza el scroll horizontal */
+            .table-wide th, .table-wide td {
+                white-space: nowrap;
+            }
+
+        /* Anchos sugeridos por columna */
+        .col-no {
+            min-width: 70px
+        }
+
+        .col-numparte {
+            min-width: 160px
+        }
+
+        .col-desc {
+            min-width: 320px
+        }
+        /* Descripción más amplia */
+        .col-case {
+            min-width: 200px
+        }
+        /* Case más grande */
+        .col-codmov {
+            min-width: 120px
+        }
+        /* CodMov más compacto */
+        .col-a {
+            min-width: 120px
+        }
+
+        .col-d {
+            min-width: 120px
+        }
+
+        .col-num {
+            min-width: 110px;
+            text-align: right
+        }
+
+        .col-mon {
+            min-width: 100px
+        }
+
+        /* Mantener visibles las primeras columnas al hacer scroll */
+        .sticky-col, .sticky-col-2 {
+            position: sticky;
+            background: #fff;
+            z-index: 1;
+        }
+
+        .sticky-col {
+            left: 0;
+        }
+
+        .sticky-col-2 {
+            left: 70px;
+        }
+        /* igual al min-width de .col-no */
+        thead .sticky-col, thead .sticky-col-2 {
+            z-index: 2;
+            background: #f8f9fa;
+        }
+    </style>
 }
