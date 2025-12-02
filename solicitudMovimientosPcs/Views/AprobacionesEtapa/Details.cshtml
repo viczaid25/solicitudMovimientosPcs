@@ -1,213 +1,337 @@
 ﻿@model solicitudMovimientosPcs.Models.PcMovimientosRequest
 @using solicitudMovimientosPcs.Models
+
 @{
     var stage = (string)ViewBag.Stage;
-    var apro = ViewBag.Aprob as PcMovimientosAprobaciones;
+    var apro  = ViewBag.Aprob as PcMovimientosAprobaciones;
     ViewData["Title"] = $"Detalle de Solicitud ({stage})";
+
+    var tipos = (Model.PcTiposMovimiento ?? "")
+        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    int itemsCount = Model.Items?.Count ?? 0;
+    decimal sumTotal   = (Model.Items ?? Enumerable.Empty<PcMovimientosItem>()).Sum(x => x.Total      ?? 0m);
+    decimal sumCantA   = (Model.Items ?? Enumerable.Empty<PcMovimientosItem>()).Sum(x => x.CantidadA  ?? 0m);
+    decimal sumCantD   = (Model.Items ?? Enumerable.Empty<PcMovimientosItem>()).Sum(x => x.CantidadD  ?? 0m);
+    decimal sumDiff    = (Model.Items ?? Enumerable.Empty<PcMovimientosItem>()).Sum(x => x.Diferencia ?? 0m);
+
+    string UrgBadge(Urgencia u) => u switch
+    {
+        Urgencia.Critica => "badge bg-danger",
+        Urgencia.Alta    => "badge bg-warning text-dark",
+        Urgencia.Media   => "badge bg-info text-dark",
+        _                => "badge bg-secondary"
+    };
+
+    string StatusPill(ApprovalStatus? s) =>
+        s == ApprovalStatus.APPROVED ? "pill success"
+      : s == ApprovalStatus.REJECTED ? "pill danger"
+      : s == ApprovalStatus.MODIFY   ? "pill warn"
+      : "pill pending";
 }
 
-<div class="d-flex align-items-center justify-content-between mb-3">
-    <h2 class="mb-0">Solicitud #@Model.Id — @stage</h2>
+@if (TempData["Err"]  != null){ <div class="alert alert-danger"><i class="fas fa-times-circle me-2"></i>@TempData["Err"]</div> }
+@if (TempData["Warn"] != null){ <div class="alert alert-warning"><i class="fas fa-info-circle  me-2"></i>@TempData["Warn"]</div> }
+@if (TempData["Ok"]   != null){ <div class="alert alert-success"><i class="fas fa-check-circle me-2"></i>@TempData["Ok"]</div> }
+@if (TempData["Msg"]  != null){ <div class="alert alert-info"><i class="fas fa-bell        me-2"></i>@TempData["Msg"]</div> }
 
-    <div class="d-flex flex-column align-items-end gap-2" style="min-width:320px">
-        @* Caja de comentarios del aprobador *@
-        @if (IsStagePending(apro, stage))
+<!-- ENCABEZADO -->
+<div class="card mb-3 shadow-sm">
+  <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div class="d-flex align-items-center gap-3">
+      <div class="avatar-circle">
+        <i class="fa fa-file-lines"></i>
+      </div>
+      <div>
+        <h2 class="mb-1">Solicitud #@Model.Id <small class="text-muted">(@stage)</small></h2>
+        <div class="d-flex flex-wrap gap-2">
+            <span class="@UrgBadge(Model.Urgencia)">@Model.Urgencia</span>
+            <span class="badge bg-secondary">Fecha: @Model.Fecha:yyyy-MM-dd HH:mm</span>
+            <span class="badge bg-secondary">Solicitante: @Model.Solicitante</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Acciones del aprobador -->
+    <div class="approve-pane">
+      @if (apro is not null && (apro?.GetType()!=null)) { } @* no-op to evitar warnings *@
+      @if (IsStagePending(apro, stage))
+      {
+        <div class="mb-2">
+            <label class="form-label fw-semibold mb-1">Comentarios del aprobador</label>
+            <textarea id="txtAprobComments" class="form-control" rows="2"
+                      placeholder="Requerido para Modificar/Rechazar"></textarea>
+        </div>
+        if (EtapasPrevAprobadas(apro, stage))
         {
-            <div class="w-100">
-                <label class="form-label fw-semibold">Comentarios del aprobador</label>
-                <textarea id="txtAprobComments" class="form-control" rows="2" placeholder="Explica el motivo (requerido para Modificar/Rechazar)"></textarea>
+            <div class="d-flex flex-wrap gap-2">
+                <form asp-controller="AprobacionesEtapa" asp-action="APPROVED"
+                      asp-route-stage="@stage" asp-route-id="@Model.Id"
+                      method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button class="btn btn-success"><i class="fas fa-check me-1"></i> Aprobar</button>
+                </form>
+
+                <form id="frmModify" asp-controller="AprobacionesEtapa" asp-action="Modify"
+                      asp-route-stage="@stage" asp-route-id="@Model.Id"
+                      method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="comments" id="commentsModify" />
+                    <button type="submit" class="btn btn-warning text-dark">
+                        <i class="fas fa-edit me-1"></i> Mandar a Modificar
+                    </button>
+                </form>
+
+                <form id="frmReject" asp-controller="AprobacionesEtapa" asp-action="REJECTED"
+                      asp-route-stage="@stage" asp-route-id="@Model.Id"
+                      method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="comments" id="commentsReject" />
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-times me-1"></i> Rechazar
+                    </button>
+                </form>
             </div>
         }
-
-        <div class="d-flex gap-2">
-            @if (IsStagePending(apro, stage))
-            {
-                if (EtapasPrevAprobadas(apro, stage))
-                {
-                    <!-- APROBAR -->
-                    <form asp-controller="AprobacionesEtapa" asp-action="APPROVED"
-                          asp-route-stage="@stage" asp-route-id="@Model.Id"
-                          method="post" class="d-inline">
-                        @Html.AntiForgeryToken()
-                        <button class="btn btn-success">
-                            <i class="fas fa-check me-1"></i> Aprobar
-                        </button>
-                    </form>
-
-                    <!-- MODIFICAR -->
-                    <form id="frmModify" asp-controller="AprobacionesEtapa" asp-action="MODIFY"
-                          asp-route-stage="@stage" asp-route-id="@Model.Id"
-                          method="post" class="d-inline">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="comentario" id="commentsModify" />
-                        <button type="submit" class="btn btn-warning text-dark">
-                            <i class="fas fa-edit me-1"></i> Mandar a Modificar
-                        </button>
-                    </form>
-
-                    <!-- RECHAZAR -->
-                    <form id="frmReject" asp-controller="AprobacionesEtapa" asp-action="REJECTED"
-                          asp-route-stage="@stage" asp-route-id="@Model.Id"
-                          method="post" class="d-inline">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="comentario" id="commentsReject" />
-                        <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-times me-1"></i> Rechazar
-                        </button>
-                    </form>
-                }
-                else
-                {
-                    <span class="badge bg-secondary align-self-center">Esperando etapas previas</span>
-                }
-            }
-            else
-            {
-                <span class="badge @(EstadoBadge(apro, stage)) align-self-center">
-                    @InfoEtapa(apro, stage)
-                </span>
-            }
-        </div>
+        else
+        {
+            <span class="badge bg-secondary align-self-center">Esperando etapas previas</span>
+        }
+      }
+      else
+      {
+        <span class="badge @(EstadoBadge(apro, stage)) align-self-center">
+            @InfoEtapa(apro, stage)
+        </span>
+      }
     </div>
+  </div>
 </div>
 
+<!-- CHIPS DE MOVIMIENTO + FICHA -->
+<div class="row g-3 mb-3">
+  <div class="col-lg-8">
+    <div class="card h-100">
+      <div class="card-header"><i class="fa fa-list-check me-2"></i> Tipos de movimiento</div>
+      <div class="card-body">
+        @if (tipos.Any())
+        {
+            <div class="d-flex flex-wrap gap-2">
+                @foreach (var t in tipos)
+                {
+                    <span class="chip">@t</span>
+                }
+            </div>
+        }
+        else
+        {
+            <span class="text-muted">Sin tipos registrados.</span>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header"><i class="fa fa-id-card me-2"></i> Ficha de la solicitud</div>
+      <div class="card-body">
+        <div class="mini-def">
+          <div><span class="k">Departamento</span><span class="v">@Model.Departamento</span></div>
+          <div><span class="k">Línea</span><span class="v">@Model.Linea</span></div>
+          <div><span class="k">Urgencia</span><span class="v"><span class="@UrgBadge(Model.Urgencia)">@Model.Urgencia</span></span></div>
+          <div><span class="k">Comentarios</span><span class="v">@(!string.IsNullOrWhiteSpace(Model.Comentarios) ? Model.Comentarios : "-")</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- KPIs RÁPIDOS -->
+<div class="row g-3 mb-3">
+  <div class="col-md-3"><div class="kpi"><div class="t">Items</div><div class="n">@itemsCount</div><i class="fa fa-boxes-stacked"></i></div></div>
+  <div class="col-md-3"><div class="kpi"><div class="t">Cant. A</div><div class="n">@sumCantA.ToString("N2")</div><i class="fa fa-arrow-down-a-z"></i></div></div>
+  <div class="col-md-3"><div class="kpi"><div class="t">Cant. D</div><div class="n">@sumCantD.ToString("N2")</div><i class="fa fa-arrow-up-z-a"></i></div></div>
+  <div class="col-md-3"><div class="kpi"><div class="t">Total MXN</div><div class="n">@sumTotal.ToString("N2")</div><i class="fa fa-dollar-sign"></i></div></div>
+</div>
+
+<!-- TIMELINE DE APROBACIONES -->
+@if (apro is not null)
+{
 <div class="card mb-3">
-    <div class="card-body">
-        <dl class="row mb-0">
-            <dt class="col-sm-3">Fecha</dt>
-            <dd class="col-sm-9">@Model.Fecha.ToString("yyyy-MM-dd HH:mm")</dd>
-            <dt class="col-sm-3">Solicitante</dt>
-            <dd class="col-sm-9">@Model.Solicitante</dd>
-            <dt class="col-sm-3">Departamento</dt>
-            <dd class="col-sm-9">@Model.Departamento</dd>
-            <dt class="col-sm-3">Línea</dt>
-            <dd class="col-sm-9">@Model.Linea</dd>
-            <dt class="col-sm-3">Urgencia</dt>
-            <dd class="col-sm-9"><span class="@BadgeForUrgencia(Model.Urgencia)">@Model.Urgencia</span></dd>
-            <dt class="col-sm-3">Comentarios</dt>
-            <dd class="col-sm-9">@Model.Comentarios</dd>
-        </dl>
-    </div>
+  <div class="card-header"><i class="fa fa-route me-2"></i> Progreso de aprobaciones</div>
+  <div class="card-body">
+    <ul class="stepper">
+      <li class="@StatusPill(apro.MngStatus)">
+        <span class="lbl">MNG</span>
+        <small>@(apro.Mng ?? "-")</small>
+        <small>@(apro.MngDate?.ToString("yyyy-MM-dd HH:mm") ?? "")</small>
+      </li>
+      <li class="@StatusPill(apro.JpnStatus)">
+        <span class="lbl">JPN</span>
+        <small>@(apro.Jpn ?? "-")</small>
+        <small>@(apro.JpnDate?.ToString("yyyy-MM-dd HH:mm") ?? "")</small>
+      </li>
+      <li class="@StatusPill(apro.McStatus)">
+        <span class="lbl">MC</span>
+        <small>@(apro.Mc ?? "-")</small>
+        <small>@(apro.McDate?.ToString("yyyy-MM-dd HH:mm") ?? "")</small>
+      </li>
+      <li class="@StatusPill(apro.PlStatus)">
+        <span class="lbl">PL</span>
+        <small>@(apro.Pl ?? "-")</small>
+        <small>@(apro.PlDate?.ToString("yyyy-MM-dd HH:mm") ?? "")</small>
+      </li>
+      <li class="@StatusPill(apro.PcMngStatus)">
+        <span class="lbl">PCMNG</span>
+        <small>@(apro.PcMng ?? "-")</small>
+        <small>@(apro.PcMngDate?.ToString("yyyy-MM-dd HH:mm") ?? "")</small>
+      </li>
+      <li class="@StatusPill(apro.PcJpnStatus)">
+        <span class="lbl">PCJPN</span>
+        <small>@(apro.PcJpn ?? "-")</small>
+        <small>@(apro.PcJpnDate?.ToString("yyyy-MM-dd HH:mm") ?? "")</small>
+      </li>
+      <li class="@StatusPill(apro.FinMngStatus)">
+        <span class="lbl">FINMNG</span>
+        <small>@(apro.FinMng ?? "-")</small>
+        <small>@(apro.FinMngDate?.ToString("yyyy-MM-dd HH:mm") ?? "")</small>
+      </li>
+      <li class="@StatusPill(apro.FinJpnStatus)">
+        <span class="lbl">FINJPN</span>
+        <small>@(apro.FinJpn ?? "-")</small>
+        <small>@(apro.FinJpnDate?.ToString("yyyy-MM-dd HH:mm") ?? "")</small>
+      </li>
+    </ul>
+  </div>
 </div>
+}
 
+<!-- TABLA DE ÍTEMS (tu misma, sin cambios de estructura) -->
 <div class="card">
-    <div class="card-header">Items (@(Model.Items?.Count ?? 0))</div>
-    <div class="card-body p-0">
-        <div class="table-responsive h-scroll">
-            <table class="table table-sm mb-0 align-middle table-wide">
-                <thead class="table-light">
-                    <tr>
-                        <th class="col-no">No.</th>
-                        <th class="col-numparte">Núm. Parte</th>
-                        <th class="col-desc">Descripción</th>
-                        <th class="col-case">Case</th>
-                        <th class="col-codmov">CodMov</th>
-                        <th class="col-a">Clase A</th>
-                        <th class="col-a">Ubic A</th>
-                        <th class="col-num">Cant A</th>
-                        <th class="col-a">Estatus A</th>
-                        <th class="col-d">Clase D</th>
-                        <th class="col-d">Ubic D</th>
-                        <th class="col-num">Cant D</th>
-                        <th class="col-d">Estatus D</th>
-                        <th class="col-mon">Moneda</th>
-                        <th class="col-num">Costo U</th>
-                        <th class="col-num">Diferencia</th>
-                        <th class="col-num">Total</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var it in Model.Items ?? new List<PcMovimientosItem>())
-                    {
-                        <tr>
-                            <td class="sticky-col">@it.Numero</td>
-                            <td class="sticky-col-2">@it.NumParte</td>
-                            <td>@it.Descripcion</td>
-                            <td>@it.Case</td>
-                            <td>@it.CodMov</td>
-                            <td>@it.ClaseA</td>
-                            <td>@it.UbicacionA</td>
-                            <td class="text-end">@it.CantidadA?.ToString("0.##")</td>
-                            <td>@it.EstatusA</td>
-                            <td>@it.ClaseD</td>
-                            <td>@it.UbicacionD</td>
-                            <td class="text-end">@it.CantidadD?.ToString("0.##")</td>
-                            <td>@it.EstatusD</td>
-                            <td>@it.Moneda</td>
-                            <td class="text-end">@it.CostoU?.ToString("0.##")</td>
-                            <td class="text-end">@it.Diferencia?.ToString("0.##")</td>
-                            <td class="text-end">@it.Total?.ToString("0.##")</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+  <div class="card-header d-flex justify-content-between align-items-center">
+      <span><i class="fas fa-table me-2"></i> Items (@itemsCount)</span>
+        <div class="text-end header-totals text-white fw-bold">
+            Diferencia neta:
+            <span class="@DiffPillClass(sumDiff)">@sumDiff.ToString("N2")</span>
+            &nbsp;|&nbsp; Total: <span>@sumTotal.ToString("N2")</span>
         </div>
+
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive h-scroll">
+      <table class="table table-sm mb-0 align-middle table-wide">
+        <thead class="table-light">
+          <tr>
+            <th class="col-no sticky-col">No.</th>
+            <th class="col-numparte sticky-col-2">Núm. Parte</th>
+            <th class="col-desc">Descripción</th>
+            <th class="col-case">Case</th>
+            <th class="col-codmov">CodMov</th>
+            <th class="col-a">Clase A</th>
+            <th class="col-a">Ubic A</th>
+            <th class="col-num">Cant A</th>
+            <th class="col-a">Estatus A</th>
+            <th class="col-d">Clase D</th>
+            <th class="col-d">Ubic D</th>
+            <th class="col-num">Cant D</th>
+            <th class="col-d">Estatus D</th>
+            <th class="col-mon">Moneda</th>
+            <th class="col-num">Costo U</th>
+            <th class="col-num">Diferencia</th>
+            <th class="col-num">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          @foreach (var it in Model.Items ?? new List<PcMovimientosItem>())
+          {
+            <tr>
+              <td class="col-no sticky-col">@it.Numero</td>
+              <td class="col-numparte sticky-col-2">@it.NumParte</td>
+              <td>@it.Descripcion</td>
+              <td>@it.Case</td>
+              <td>@it.CodMov</td>
+              <td>@it.ClaseA</td>
+              <td>@it.UbicacionA</td>
+              <td class="text-end">@it.CantidadA?.ToString("0.##")</td>
+              <td>@it.EstatusA</td>
+              <td>@it.ClaseD</td>
+              <td>@it.UbicacionD</td>
+              <td class="text-end">@it.CantidadD?.ToString("0.##")</td>
+              <td>@it.EstatusD</td>
+              <td>@it.Moneda</td>
+              <td class="text-end">@it.CostoU?.ToString("0.##")</td>
+                            <td class="text-end @DiffCellClass(it.Diferencia)">@((it.Diferencia ?? 0m).ToString("0.##"))</td>
+              <td class="text-end">@it.Total?.ToString("0.##")</td>
+            </tr>
+          }
+        </tbody>
+      </table>
     </div>
+  </div>
 </div>
 
 @functions {
     string BadgeForUrgencia(Urgencia u) => u switch
     {
         Urgencia.Critica => "badge bg-danger",
-        Urgencia.Alta => "badge bg-warning text-dark",
-        Urgencia.Media => "badge bg-info text-dark",
-        _ => "badge bg-secondary"
+        Urgencia.Alta    => "badge bg-warning text-dark",
+        Urgencia.Media   => "badge bg-info text-dark",
+        _                => "badge bg-secondary"
     };
 
     bool IsStagePending(PcMovimientosAprobaciones a, string st) => st switch
     {
-        "MNG" => a?.MngStatus == ApprovalStatus.PENDING || a?.MngStatus == null,
-        "JPN" => a?.JpnStatus == ApprovalStatus.PENDING || a?.JpnStatus == null,
-        "MC" => a?.McStatus == ApprovalStatus.PENDING || a?.McStatus == null,
-        "PL" => a?.PlStatus == ApprovalStatus.PENDING || a?.PlStatus == null,
-        "PCMNG" => a?.PcMngStatus == ApprovalStatus.PENDING || a?.PcMngStatus == null,
-        "PCJPN" => a?.PcJpnStatus == ApprovalStatus.PENDING || a?.PcJpnStatus == null,
-        "FINMNG" => a?.FinMngStatus == ApprovalStatus.PENDING || a?.FinMngStatus == null,
-        "FINJPN" => a?.FinJpnStatus == ApprovalStatus.PENDING || a?.FinJpnStatus == null,
-        _ => false
+        "MNG"   => a?.MngStatus   is null or ApprovalStatus.PENDING,
+        "JPN"   => a?.JpnStatus   is null or ApprovalStatus.PENDING,
+        "MC"    => a?.McStatus    is null or ApprovalStatus.PENDING,
+        "PL"    => a?.PlStatus    is null or ApprovalStatus.PENDING,
+        "PCMNG" => a?.PcMngStatus is null or ApprovalStatus.PENDING,
+        "PCJPN" => a?.PcJpnStatus is null or ApprovalStatus.PENDING,
+        "FINMNG"=> a?.FinMngStatus is null or ApprovalStatus.PENDING,
+        "FINJPN"=> a?.FinJpnStatus is null or ApprovalStatus.PENDING,
+        _       => false
     };
 
     bool EtapasPrevAprobadas(PcMovimientosAprobaciones a, string st)
     {
-        string[] flow = new[] { "MNG", "JPN", "MC", "PL", "PCMNG", "PCJPN", "FINMNG", "FINJPN" };
+        string[] flow = new[] { "MNG","JPN","MC","PL","PCMNG","PCJPN","FINMNG","FINJPN" };
         int idx = Array.IndexOf(flow, st);
         if (idx <= 0) return true;
         for (int i = 0; i < idx; i++)
-        {
             if (!EtapaAprobada(a, flow[i])) return false;
-        }
         return true;
     }
 
     bool EtapaAprobada(PcMovimientosAprobaciones a, string st) => st switch
     {
-        "MNG" => a?.MngStatus == ApprovalStatus.APPROVED,
-        "JPN" => a?.JpnStatus == ApprovalStatus.APPROVED,
-        "MC" => a?.McStatus == ApprovalStatus.APPROVED,
-        "PL" => a?.PlStatus == ApprovalStatus.APPROVED,
+        "MNG"   => a?.MngStatus   == ApprovalStatus.APPROVED,
+        "JPN"   => a?.JpnStatus   == ApprovalStatus.APPROVED,
+        "MC"    => a?.McStatus    == ApprovalStatus.APPROVED,
+        "PL"    => a?.PlStatus    == ApprovalStatus.APPROVED,
         "PCMNG" => a?.PcMngStatus == ApprovalStatus.APPROVED,
         "PCJPN" => a?.PcJpnStatus == ApprovalStatus.APPROVED,
-        "FINMNG" => a?.FinMngStatus == ApprovalStatus.APPROVED,
-        "FINJPN" => a?.FinJpnStatus == ApprovalStatus.APPROVED,
-        _ => false
+        "FINMNG"=> a?.FinMngStatus== ApprovalStatus.APPROVED,
+        "FINJPN"=> a?.FinJpnStatus== ApprovalStatus.APPROVED,
+        _       => false
     };
 
     string EstadoBadge(PcMovimientosAprobaciones a, string st)
     {
         var s = st switch
         {
-            "MNG" => a?.MngStatus,
-            "JPN" => a?.JpnStatus,
-            "MC" => a?.McStatus,
-            "PL" => a?.PlStatus,
+            "MNG"   => a?.MngStatus,
+            "JPN"   => a?.JpnStatus,
+            "MC"    => a?.McStatus,
+            "PL"    => a?.PlStatus,
             "PCMNG" => a?.PcMngStatus,
             "PCJPN" => a?.PcJpnStatus,
-            "FINMNG" => a?.FinMngStatus,
-            "FINJPN" => a?.FinJpnStatus,
-            _ => null
+            "FINMNG"=> a?.FinMngStatus,
+            "FINJPN"=> a?.FinJpnStatus,
+            _       => null
         };
         return s == ApprovalStatus.APPROVED ? "bg-success"
              : s == ApprovalStatus.REJECTED ? "bg-danger"
+             : s == ApprovalStatus.MODIFY   ? "bg-warning text-dark"
              : "bg-secondary";
     }
 
@@ -215,150 +339,193 @@
     {
         string? user = st switch
         {
-            "MNG" => a?.Mng,
-            "JPN" => a?.Jpn,
-            "MC" => a?.Mc,
-            "PL" => a?.Pl,
-            "PCMNG" => a?.PcMng,
-            "PCJPN" => a?.PcJpn,
-            "FINMNG" => a?.FinMng,
-            "FINJPN" => a?.FinJpn,
+            "MNG"   => a?.Mng,   "JPN" => a?.Jpn,  "MC" => a?.Mc, "PL" => a?.Pl,
+            "PCMNG" => a?.PcMng, "PCJPN"=> a?.PcJpn,"FINMNG"=> a?.FinMng,"FINJPN"=> a?.FinJpn,
             _ => null
         };
         ApprovalStatus? status = st switch
         {
-            "MNG" => a?.MngStatus,
-            "JPN" => a?.JpnStatus,
-            "MC" => a?.McStatus,
-            "PL" => a?.PlStatus,
-            "PCMNG" => a?.PcMngStatus,
-            "PCJPN" => a?.PcJpnStatus,
-            "FINMNG" => a?.FinMngStatus,
-            "FINJPN" => a?.FinJpnStatus,
+            "MNG"   => a?.MngStatus, "JPN" => a?.JpnStatus, "MC" => a?.McStatus, "PL" => a?.PlStatus,
+            "PCMNG" => a?.PcMngStatus, "PCJPN" => a?.PcJpnStatus, "FINMNG" => a?.FinMngStatus, "FINJPN" => a?.FinJpnStatus,
             _ => null
         };
         DateTime? date = st switch
         {
-            "MNG" => a?.MngDate,
-            "JPN" => a?.JpnDate,
-            "MC" => a?.McDate,
-            "PL" => a?.PlDate,
-            "PCMNG" => a?.PcMngDate,
-            "PCJPN" => a?.PcJpnDate,
-            "FINMNG" => a?.FinMngDate,
-            "FINJPN" => a?.FinJpnDate,
+            "MNG"   => a?.MngDate, "JPN" => a?.JpnDate, "MC" => a?.McDate, "PL" => a?.PlDate,
+            "PCMNG" => a?.PcMngDate, "PCJPN" => a?.PcJpnDate, "FINMNG" => a?.FinMngDate, "FINJPN" => a?.FinJpnDate,
             _ => null
         };
         return $"{st}: {user ?? "-"} — {status} — {date?.ToString("yyyy-MM-dd HH:mm")}";
     }
+
+    // === Enfasis para "Diferencia" ===
+    string DiffPillClass(decimal v)
+        => v == 0 ? "diff-pill zero" : (v > 0 ? "diff-pill pos" : "diff-pill neg");
+
+    string DiffCellClass(decimal? v)
+    {
+        var x = v ?? 0m;
+        return x == 0 ? "diff zero" : (x > 0 ? "diff pos" : "diff neg");
+    }
 }
 
-@section Scripts {
-    <script>
-        (function () {
-            const txt = document.getElementById('txtAprobComments');
-            const frmModify = document.getElementById('frmModify');
-            const frmReject = document.getElementById('frmReject');
+@section Scripts{
+<script>
+(function(){
+  const txt = document.getElementById('txtAprobComments');
+  const frmModify = document.getElementById('frmModify');
+  const frmReject = document.getElementById('frmReject');
 
-            function mustHaveComments(e, hiddenId){
-                const val = (txt?.value || '').trim();
-                if (!val) {
-                    e.preventDefault();
-                    alert('Por favor especifica comentarios para Modificar/Rechazar.');
-                    txt?.focus();
-                    return false;
-                }
-                const hid = document.getElementById(hiddenId);
-                if (hid) hid.value = val;
-                return true;
-            }
+  function mustHaveComments(e, hiddenId){
+    if(!txt) return true;
+    const val = (txt.value || '').trim();
+    if(!val){
+      e.preventDefault();
+      alert('Por favor especifica comentarios para Modificar/Rechazar.');
+      txt.focus();
+      return false;
+    }
+    const hid = document.getElementById(hiddenId);
+    if(hid) hid.value = val;
+    return true;
+  }
 
-            if (frmModify) {
-                frmModify.addEventListener('submit', function (e) {
-                    mustHaveComments(e, 'commentsModify');
-                });
-            }
-            if (frmReject) {
-                frmReject.addEventListener('submit', function (e) {
-                    // Confirmación adicional opcional
-                    if (!confirm('¿Rechazar la solicitud?')) { e.preventDefault(); return; }
-                    mustHaveComments(e, 'commentsReject');
-                });
-            }
-        })();
-    </script>
+  frmModify?.addEventListener('submit', e => mustHaveComments(e, 'commentsModify'));
+  frmReject?.addEventListener('submit',  e => {
+    if(!confirm('¿Rechazar la solicitud?')) { e.preventDefault(); return; }
+    mustHaveComments(e, 'commentsReject');
+  });
+})();
+</script>
 }
 
-@section Styles {
-    <style>
-        .h-scroll {
-            overflow-x: auto;
+@section Styles{
+<style>
+/* ---------- Encabezado y chips ---------- */
+.avatar-circle{
+  width:44px;height:44px;border-radius:999px;
+  display:grid;place-items:center;
+  background: rgba(44,95,168,.12);
+  color:#2c5fa8;font-size:18px;
+}
+.approve-pane{min-width:320px;max-width:420px}
+.chip{
+  display:inline-block;padding:.35rem .6rem;border-radius:999px;
+  background:#eef2ff;border:1px solid #e5e7eb;font-weight:600;font-size:.8rem;
+}
+
+/* ---------- KPIs ---------- */
+.kpi{
+  display:flex;justify-content:space-between;align-items:center;
+  border:1px solid var(--border);border-radius:12px;padding:.9rem 1rem;
+  background:#fff;box-shadow:var(--shadow-sm);
+}
+.kpi .t{font-size:.8rem;color:#6b7280;margin-bottom:.1rem}
+.kpi .n{font-size:1.25rem;font-weight:800}
+.kpi i{opacity:.6}
+
+/* ---------- Mini ficha ---------- */
+.mini-def{display:grid;grid-template-columns:1fr;gap:.4rem}
+.mini-def .k{display:block;font-size:.75rem;color:#6b7280}
+.mini-def .v{display:block;font-weight:600}
+
+/* ---------- Stepper ---------- */
+.stepper{
+  display:flex;gap:12px;flex-wrap:wrap;list-style:none;margin:0;padding:0
+}
+.stepper li{
+  position:relative;border:1px solid var(--border);border-radius:12px;
+  background:#fff;padding:.5rem .7rem;min-width:110px;text-align:center;
+  box-shadow:var(--shadow-sm)
+}
+.stepper li .lbl{display:block;font-weight:800;margin-bottom:.15rem}
+.stepper li small{display:block;line-height:1.1;color:#6b7280}
+
+/* Estados */
+.stepper li.pill.success{border-color:#16a34a;background:#ecfdf5}
+.stepper li.pill.danger {border-color:#dc2626;background:#fef2f2}
+.stepper li.pill.warn   {border-color:#f59e0b;background:#fffbeb}
+.stepper li.pill.pending{border-color:#94a3b8;background:#f8fafc}
+
+/* ---------- Tabla items: ya controlada por tu site.css ---------- */
+/* Solo aseguramos scroll y nowrap coherentes aquí por si faltan */
+.h-scroll{ overflow-x:auto; }
+.table-wide{ min-width: 1200px; table-layout:auto !important; }
+.table-wide th, .table-wide td{ white-space:nowrap; }
+
+/* Sticky primeras 2 columnas: respeta tu var --col-no-w */
+.col-no{
+  width: var(--col-no-w);
+  min-width: var(--col-no-w);
+  max-width: var(--col-no-w);
+}
+.sticky-col, .sticky-col-2{
+  position: sticky; z-index:5;
+  background-color:#fff !important;
+  background-clip: padding-box;
+  box-shadow: 2px 0 0 rgba(0,0,0,.06);
+}
+thead .sticky-col, thead .sticky-col-2{
+  z-index:7; background-color:#f8f9fa !important;
+}
+.sticky-col{ left:0; }
+.sticky-col-2{ left: var(--col-no-w); }
+
+        /* ---- Énfasis visual para Diferencia (neto y por ítem) ---- */
+
+        /* Píldora para el neto (sumDiff) */
+        .diff-pill {
+            display: inline-block;
+            padding: .18rem .5rem;
+            border-radius: 999px;
+            font-weight: 800;
+            border: 1px solid transparent;
+            line-height: 1;
         }
 
-        .table-wide {
-            min-width: 1600px;
+            .diff-pill.zero {
+                background: #ecfdf5;
+                color: #166534;
+                border-color: #16a34a20;
+            }
+            /* 0: verde suave */
+            .diff-pill.pos {
+                background: #fff1f2;
+                color: #991b1b;
+                border-color: #dc262620;
+            }
+            /* >0: rojo (alerta) */
+            .diff-pill.neg {
+                background: #eff6ff;
+                color: #1e40af;
+                border-color: #3b82f620;
+            }
+        /* <0: azul (info) */
+
+        /* Celdas por renglón */
+        td.diff {
+            font-weight: 800;
         }
-            /* fuerza el scroll horizontal */
-            .table-wide th, .table-wide td {
-                white-space: nowrap;
+
+            td.diff.zero {
+                color: #15803d;
+                opacity: .9;
+            }
+            /* 0 */
+            td.diff.pos {
+                color: #b91c1c;
+            }
+            /* >0 */
+            td.diff.neg {
+                color: #1d4ed8;
+            }
+            /* <0 */
+
+            /* Opcional: sutil subrayado al pasar el mouse para fijar la vista */
+            td.diff:hover {
+                text-decoration: underline;
+                text-underline-offset: 2px;
             }
 
-        /* Anchos sugeridos por columna */
-        .col-no {
-            min-width: 70px
-        }
-
-        .col-numparte {
-            min-width: 160px
-        }
-
-        .col-desc {
-            min-width: 320px
-        }
-        /* Descripción más amplia */
-        .col-case {
-            min-width: 200px
-        }
-        /* Case más grande */
-        .col-codmov {
-            min-width: 120px
-        }
-        /* CodMov más compacto */
-        .col-a {
-            min-width: 120px
-        }
-
-        .col-d {
-            min-width: 120px
-        }
-
-        .col-num {
-            min-width: 110px;
-            text-align: right
-        }
-
-        .col-mon {
-            min-width: 100px
-        }
-
-        /* Mantener visibles las primeras columnas al hacer scroll */
-        .sticky-col, .sticky-col-2 {
-            position: sticky;
-            background: #fff;
-            z-index: 1;
-        }
-
-        .sticky-col {
-            left: 0;
-        }
-
-        .sticky-col-2 {
-            left: 70px;
-        }
-        /* igual al min-width de .col-no */
-        thead .sticky-col, thead .sticky-col-2 {
-            z-index: 2;
-            background: #f8f9fa;
-        }
-    </style>
+</style>
 }

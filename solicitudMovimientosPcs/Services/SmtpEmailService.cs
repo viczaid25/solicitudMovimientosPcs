@@ -1,6 +1,7 @@
 ﻿using System.Net.Mail;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
+using System.Collections.Generic; // <-- IMPORTANTE para IEnumerable<string>
 
 namespace solicitudMovimientosPcs.Services
 {
@@ -13,18 +14,21 @@ namespace solicitudMovimientosPcs.Services
             _cfg = cfg.Value;
         }
 
-        public Task SendAsync(string to, string subject, string htmlBody)
-            => SendAsync(new[] { to }, subject, htmlBody);
+        // Conveniencia: un solo destinatario
+        public Task SendAsync(string to, string subject, string html)
+            => SendAsync((IEnumerable<string>)new[] { to }, subject, html);
 
-        public async Task SendAsync(string[] to, string subject, string htmlBody)
+        // Firma EXACTA que pide la interfaz
+        public async Task SendAsync(IEnumerable<string> to, string subject, string html)
         {
             using var msg = new MailMessage
             {
                 From = new MailAddress(_cfg.FromEmail),
                 Subject = subject,
-                Body = htmlBody,
+                Body = html,
                 IsBodyHtml = true
             };
+
             foreach (var t in to)
             {
                 if (!string.IsNullOrWhiteSpace(t))
@@ -34,13 +38,9 @@ namespace solicitudMovimientosPcs.Services
             using var client = new SmtpClient(_cfg.SmtpServer, _cfg.SmtpPort)
             {
                 EnableSsl = _cfg.EnableSsl,
-                // Para relay por IP en O365 NO usar credenciales.
                 UseDefaultCredentials = true,
                 DeliveryMethod = SmtpDeliveryMethod.Network
             };
-
-            // Si tu relay requiere TLS explícito y falla con SSL=false, puedes intentar:
-            // client.EnableSsl = true;  // sólo si tu conector lo exige
 
             await client.SendMailAsync(msg);
         }

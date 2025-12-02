@@ -31,9 +31,8 @@
                 <!-- FECHA (requerido): deshabilitado visual + hidden para enviar -->
                 <div class="col-md-3">
                     <label class="form-label req">Fecha</label>
-                    <input class="form-control" value="@Model.Fecha.ToString("yyyy-MM-dd")" type="date" disabled />
-                    <input type="hidden" asp-for="Fecha" />
-                    <span asp-validation-for="Fecha" class="text-danger"></span>
+                    <!-- Solo visual, sin postear -->
+                    <input class="form-control" value="@Model.Fecha.ToString("yyyy-MM-dd HH:mm")" readonly />
                 </div>
 
                 <!-- SOLICITANTE: solo lectura + hidden -->
@@ -99,6 +98,10 @@
                             <label class="form-check-label" for="tmPDO">PDO</label>
                         </div>
                         <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="tmWDO" name="TiposMovimiento" value="WDO" @(chk("WDO") ? "checked" : "") />
+                            <label class="form-check-label" for="tmWDO">WDO</label>
+                        </div>
+                        <div class="form-check">
                             <input class="form-check-input" type="checkbox" id="tmMLO" name="TiposMovimiento" value="MLO" @(chk("MLO") ? "checked" : "") />
                             <label class="form-check-label" for="tmMLO">MLO</label>
                         </div>
@@ -107,7 +110,11 @@
                             <label class="form-check-label" for="tmEST">ESTATUS</label>
                         </div>
                     </div>
-                    <div class="form-text">Si seleccionas <strong>MLO</strong> o <strong>ESTATUS</strong>, la solicitud no pasará por aprobación de Finanzas.</div>
+                    <div class="form-text">
+                        Si seleccionas <strong>FDO</strong>, <strong>PDO</strong> o <strong>WDO</strong>, la solicitud <u>pasará</u> por aprobación de Finanzas.
+                        (Ejemplo: si eliges <strong>ESTATUS</strong> y <strong>FDO</strong>, <em>sí</em> pasa por Finanzas).
+                    </div>
+
                 </div>
             </div>
 

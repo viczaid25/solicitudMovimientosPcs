@@ -2,97 +2,252 @@
 @using solicitudMovimientosPcs.Models
 @{
     var stage = (string)ViewBag.Stage;
-    ViewData["Title"] = $"Aprobaciuuones ({stage})";
+    ViewData["Title"] = $"Aprobaciones ({stage})";
+
+    var list = Model?.ToList() ?? new List<PcMovimientosAprobaciones>();
+    int total = list.Count;
+
+    int cCrit = list.Count(a => a.Solicitud?.Urgencia == Urgencia.Critica);
+    int cAlta = list.Count(a => a.Solicitud?.Urgencia == Urgencia.Alta);
+    int cMedia = list.Count(a => a.Solicitud?.Urgencia == Urgencia.Media);
+
+    var departamentos = list
+        .Select(a => a.Solicitud?.Departamento)
+        .Where(s => !string.IsNullOrWhiteSpace(s))
+        .Distinct()
+        .OrderBy(s => s)
+        .ToList();
+
+    var lineas = list
+        .Select(a => a.Solicitud?.Linea)
+        .Where(s => !string.IsNullOrWhiteSpace(s))
+        .Distinct()
+        .OrderBy(s => s)
+        .ToList();
+
+    string UrgBadge(Urgencia u)
+        => u == Urgencia.Critica ? "badge bg-danger"
+         : u == Urgencia.Alta ? "badge bg-warning text-dark"
+         : u == Urgencia.Media ? "badge bg-info text-dark"
+         : "badge bg-secondary";
 }
 
-<div class="d-flex align-items-center mb-3">
-    <h2 class="mb-0">Solicitudes pendientes (@stage)</h2>
+<div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="mb-0">Solicitudes pendientes <small class="text-muted">(@stage)</small></h2>
 </div>
 
 @if (TempData["Ok"] != null)
 {
-     <div class="alert alert-success"><i class="fas fa-check-circle me-2"></i>@TempData["Ok"]</div>
+    <div class="alert alert-success"><i class="fas fa-check-circle me-2"></i>@TempData["Ok"]</div>
 }
 @if (TempData["Warn"] != null)
 {
-     <div class="alert alert-warning"><i class="fas fa-info-circle me-2"></i>@TempData["Warn"]</div>
+    <div class="alert alert-warning"><i class="fas fa-info-circle me-2"></i>@TempData["Warn"]</div>
 }
 @if (TempData["Err"] != null)
 {
-     <div class="alert alert-danger"><i class="fas fa-times-circle me-2"></i>@TempData["Err"]</div>
+    <div class="alert alert-danger"><i class="fas fa-times-circle me-2"></i>@TempData["Err"]</div>
 }
 
-@if (!Model.Any())
+@if (!list.Any())
 {
     <div class="alert alert-info">No hay solicitudes pendientes para @stage.</div>
 }
 else
 {
-    <div class="table-responsive">
-        <table class="table table-hover align-middle" id="datatable">
-            <thead class="table-light">
-                <tr>
-                    <th>Solicitud</th>
-                    <th>Fecha</th>
-                    <th>Solicitante</th>
-                    <th>Departamento</th>
-                    <th>Línea</th>
-                    <th>Urgencia</th>
-                    <th class="text-end">Items</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var a in Model)
-                {
-                    var r = a.Solicitud!;
-                    <tr>
-                        <td>#@r.Id</td>
-                        <td>@r.Fecha.ToString("yyyy-MM-dd HH:mm")</td>
-                        <td>@r.Solicitante</td>
-                        <td>@r.Departamento</td>
-                        <td>@r.Linea</td>
-                        <td><span class="@BadgeForUrgencia(r.Urgencia)">@r.Urgencia</span></td>
-                        <td class="text-end">@((r.Items?.Count) ?? 0)</td>
-                        <td class="text-end">
-                            <a asp-controller="AprobacionesEtapa" asp-action="Details"
-                               asp-route-stage="@stage" asp-route-id="@r.Id"
-                               class="btn btn-sm btn-outline-secondary me-2">
-                                <i class="fas fa-eye me-1"></i> Ver
-                            </a>
-                            <form asp-controller="AprobacionesEtapa" asp-action="APPROVED"
-                                  asp-route-stage="@stage" asp-route-id="@r.Id"
-                                  method="post" class="d-inline">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-sm btn-success">
-                                    <i class="fas fa-check me-1"></i> Aprobar
-                                </button>
-                            </form>
-                            <form asp-controller="AprobacionesEtapa" asp-action="REJECTED"
-                                  asp-route-stage="@stage" asp-route-id="@r.Id"
-                                  method="post" class="d-inline ms-1"
-                                  onsubmit="return confirm('¿Rechazar la solicitud #@r.Id en @stage?');">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-sm btn-danger">
-                                    <i class="fas fa-times me-1"></i> Rechazar
-                                </button>
-                            </form>
-                            <form asp-controller="AprobacionesEtapa" asp-action="MODIFY"
-                                  asp-route-stage="@stage" asp-route-id="@r.Id"
-                                  method="post" class="d-inline ms-1"
-                                  onsubmit="return confirm('¿Enviar la solicitud #@r.Id a modificación para que el solicitante la edite?');">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-sm btn-warning text-dark">
-                                    <i class="fas fa-rotate-left me-1"></i> Modificar
-                                </button>
-                            </form>
+    <!-- KPIs -->
+    <div class="row g-3 mb-3">
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small">Total pendientes</div>
+                        <div class="h4 mb-0" id="kpi-total">@total</div>
+                    </div>
+                    <i class="fa fa-inbox fa-lg text-primary"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small">Críticas</div>
+                        <div class="h4 mb-0" id="kpi-crit">@cCrit</div>
+                    </div>
+                    <span class="badge bg-danger">Crítica</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small">Alta</div>
+                        <div class="h4 mb-0" id="kpi-alta">@cAlta</div>
+                    </div>
+                    <span class="badge bg-warning text-dark">Alta</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm h-100">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small">Media</div>
+                        <div class="h4 mb-0" id="kpi-media">@cMedia</div>
+                    </div>
+                    <span class="badge bg-info text-dark">Media</span>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- Filtros -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">Buscar</label>
+                    <input id="flt-q" type="text" class="form-control" placeholder="ID, solicitante, departamento, línea, tipo…">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Urgencia</label>
+                    <select id="flt-urg" class="form-select">
+                        <option value="">Todas</option>
+                        <option value="Critica">Crítica</option>
+                        <option value="Alta">Alta</option>
+                        <option value="Media">Media</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Departamento</label>
+                    <select id="flt-depto" class="form-select">
+                        <option value="">Todos</option>
+                        @foreach (var d in departamentos)
+                        {
+                            <option value="@d">@d</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Línea</label>
+                    <select id="flt-linea" class="form-select">
+                        <option value="">Todas</option>
+                        @foreach (var l in lineas)
+                        {
+                            <option value="@l">@l</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+    <!-- Tabla -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="fa fa-list me-2"></i> Pendientes</span>
+            <button id="btn-csv" class="btn btn-sm btn-outline-light header-cta fw-bold">
+                <i class="fa fa-file-csv me-1"></i> Exportar CSV (filtrado)
+            </button>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive h-scroll">
+                <table class="table table-hover align-middle mb-0 table-wide" id="tbl-aprob">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="col-no sticky-col">Solicitud</th>
+                            <th class="col-numparte sticky-col-2">Fecha</th>
+                            <th>Solicitante</th>
+                            <th>Departamento</th>
+                            <th>Línea</th>
+                            <th>Tipos</th>
+                            <th>Urgencia</th>
+                            <th class="text-end">Items</th>
+                            <th class="text-end">Total</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tb-body">
+                        @foreach (var a in list)
+                        {
+                            var r = a.Solicitud!;
+                            var tipos = (r.PcTiposMovimiento ?? "")
+                            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                            var totalRow = (r.Items?.Sum(i => i.Total ?? 0m) ?? 0m);
+
+                            <tr class="req-row"
+                                data-id="@r.Id"
+                                data-solicitante="@r.Solicitante"
+                                data-depto="@r.Departamento"
+                                data-linea="@r.Linea"
+                                data-urg="@r.Urgencia"
+                                data-tipos="@string.Join(' ', tipos)">
+                                <td class="sticky-col">#@r.Id</td>
+                                <td class="sticky-col-2">@r.Fecha.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td>@r.Solicitante</td>
+                                <td>@r.Departamento</td>
+                                <td>@r.Linea</td>
+                                <td>
+                                    @if (tipos.Any())
+                                    {
+                                        foreach (var t in tipos)
+                                        {
+                                            <span class="badge bg-secondary me-1">@t</span>
+                                        }
+                                    }
+                                    else
+                                    {
+
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td><span class="@UrgBadge(r.Urgencia)">@r.Urgencia</span></td>
+                                <td class="text-end">@((r.Items?.Count) ?? 0)</td>
+                                <td class="text-end">@totalRow.ToString("N2")</td>
+                                <td class="text-end">
+                                    <a asp-controller="AprobacionesEtapa" asp-action="Details"
+                                       asp-route-stage="@stage" asp-route-id="@r.Id"
+                                       class="btn btn-sm btn-outline-primary me-1">
+                                        <i class="fas fa-eye me-1"></i> Ver
+                                    </a>
+
+                                    <form asp-controller="AprobacionesEtapa" asp-action="APPROVED"
+                                          asp-route-stage="@stage" asp-route-id="@r.Id"
+                                          method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-success">
+                                            <i class="fas fa-check me-1"></i> Aprobar
+                                        </button>
+                                    </form>
+
+                                    <form asp-controller="AprobacionesEtapa" asp-action="REJECTED"
+                                          asp-route-stage="@stage" asp-route-id="@r.Id"
+                                          method="post" class="d-inline ms-1"
+                                          onsubmit="return confirm('¿Rechazar la solicitud #@r.Id en @stage?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="fas fa-times me-1"></i> Rechazar
+                                        </button>
+                                    </form>
+
+                                    <form asp-controller="AprobacionesEtapa" asp-action="MODIFY"
+                                          asp-route-stage="@stage" asp-route-id="@r.Id"
+                                          method="post" class="d-inline ms-1"
+                                          onsubmit="return confirm('¿Enviar la solicitud #@r.Id a modificación?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-warning text-dark">
+                                            <i class="fas fa-rotate-left me-1"></i> Modificar
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 }
 
@@ -108,12 +263,143 @@ else
 
 @section Scripts {
     <script>
-        if (window.jQuery && $.fn.DataTable) {
-          $('#datatable').DataTable({
-            responsive:true,
-            pageLength:10,
-            language:{ url:'https://cdn.datatables.net/plug-ins/1.13.4/i18n/es-MX.json' }
+        (function(){
+          const q      = document.getElementById('flt-q');
+          const urg    = document.getElementById('flt-urg');
+          const depto  = document.getElementById('flt-depto');
+          const linea  = document.getElementById('flt-linea');
+          const tbody  = document.getElementById('tb-body');
+          const kTotal = document.getElementById('kpi-total');
+          const kCrit  = document.getElementById('kpi-crit');
+          const kAlta  = document.getElementById('kpi-alta');
+          const kMedia = document.getElementById('kpi-media');
+
+          function norm(s){ return (s || '').toString().trim().toLowerCase(); }
+
+          function matches(tr){
+            const t = norm(q.value);
+            const fUrg = urg.value;            // tal cual (Critica/Alta/Media)
+            const fDep = norm(depto.value);
+            const fLin = norm(linea.value);
+
+            const id   = norm(tr.dataset.id);
+            const sol  = norm(tr.dataset.solicitante);
+            const dep  = norm(tr.dataset.depto);
+            const lin  = norm(tr.dataset.linea);
+            const tips = norm(tr.dataset.tipos);
+            const rUrg = tr.dataset.urg;       // enum tal cual
+
+            const hitText = !t || id.includes(t) || sol.includes(t) || dep.includes(t) || lin.includes(t) || tips.includes(t);
+            const hitUrg  = !fUrg || rUrg === fUrg;
+            const hitDep  = !fDep || dep === fDep;
+            const hitLin  = !fLin || lin === fLin;
+            return hitText && hitUrg && hitDep && hitLin;
+          }
+
+          function applyFilters(){
+            let vis=0, cCrit=0, cAlta=0, cMedia=0;
+            tbody.querySelectorAll('.req-row').forEach(tr=>{
+              const ok = matches(tr);
+              tr.style.display = ok ? '' : 'none';
+              if(ok){
+                vis++;
+                const u = tr.dataset.urg;
+                if(u === 'Critica') cCrit++;
+                else if(u === 'Alta') cAlta++;
+                else if(u === 'Media') cMedia++;
+              }
+            });
+            if(kTotal) kTotal.textContent = vis;
+            if(kCrit)  kCrit.textContent  = cCrit;
+            if(kAlta)  kAlta.textContent  = cAlta;
+            if(kMedia) kMedia.textContent = cMedia;
+          }
+
+          [q,urg,depto,linea].forEach(el => el?.addEventListener('input', applyFilters));
+          urg?.addEventListener('change', applyFilters);
+          depto?.addEventListener('change', applyFilters);
+          linea?.addEventListener('change', applyFilters);
+
+          applyFilters();
+
+          // Export CSV del filtrado actual (visibles)
+          document.getElementById('btn-csv')?.addEventListener('click', ()=>{
+            const rows = Array.from(tbody.querySelectorAll('.req-row')).filter(tr=>tr.style.display !== 'none');
+            const sep = ',';
+            const head = ['Solicitud','Fecha','Solicitante','Departamento','Línea','Tipos','Urgencia','Items','Total'];
+            const csv = [head.join(sep)]
+              .concat(rows.map(tr=>{
+                const tds = tr.querySelectorAll('td');
+                function text(td){
+                  const s = (td.innerText || '').replace(/\s+/g,' ').trim();
+                  return /[",\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
+                }
+                // columnas 0..8 (acciones no)
+                return [
+                  text(tds[0]), text(tds[1]), text(tds[2]), text(tds[3]), text(tds[4]),
+                  text(tds[5]), text(tds[6]), text(tds[7]), text(tds[8])
+                ].join(sep);
+              }))
+              .join('\n');
+            const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = `aprobaciones_${Date.now()}.csv`;
+            document.body.appendChild(a); a.click(); a.remove();
+            URL.revokeObjectURL(url);
           });
-        }
+        })();
     </script>
+}
+
+@section Styles {
+    <style>
+        /* Ajustes visuales específicos de esta vista */
+        .table-wide {
+            min-width: 1200px;
+            table-layout: auto !important;
+        }
+
+        .h-scroll {
+            overflow-x: auto;
+        }
+
+        /* Sticky primeras dos columnas (usa var --col-no-w global) */
+        .col-no {
+            width: var(--col-no-w);
+            min-width: var(--col-no-w);
+            max-width: var(--col-no-w);
+        }
+
+        .sticky-col, .sticky-col-2 {
+            position: sticky;
+            z-index: 5;
+            background-color: #fff !important;
+            background-clip: padding-box;
+            box-shadow: 2px 0 0 rgba(0,0,0,.06);
+        }
+
+        thead .sticky-col, thead .sticky-col-2 {
+            z-index: 7;
+            background-color: #f8f9fa !important;
+        }
+
+        .sticky-col {
+            left: 0;
+        }
+
+        .sticky-col-2 {
+            left: var(--col-no-w);
+        }
+
+        /* Evitar que se amontone: mínimos por columna y nowrap */
+        .table-wide th, .table-wide td {
+            white-space: nowrap;
+        }
+
+        .col-numparte {
+            min-width: 160px;
+        }
+        /* fecha sticky ancho suficiente */
+    </style>
 }

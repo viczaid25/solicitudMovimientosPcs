@@ -129,6 +129,61 @@ namespace solicitudMovimientosPcs.Migrations
                     b.ToTable("PC_MOVIMIENTOS_UBICACION", (string)null);
                 });
 
+            modelBuilder.Entity("solicitudMovimientosPcs.Models.Catalogs.UsersAd", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<byte>("Auth")
+                        .HasColumnType("tinyint")
+                        .HasColumnName("AUTH");
+
+                    b.Property<string>("Dep2")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("DEP_2");
+
+                    b.Property<string>("Departament")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("DEPARTAMENT");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("EMAIL");
+
+                    b.Property<string>("PcLoginId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("PC_LOGIN_ID");
+
+                    b.Property<string>("Position")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnName("POSITION");
+
+                    b.Property<string>("Username")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("USERNAME");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email");
+
+                    b.HasIndex("PcLoginId");
+
+                    b.HasIndex("Username");
+
+                    b.ToTable("users_ad", "dbo");
+                });
+
             modelBuilder.Entity("solicitudMovimientosPcs.Models.PcMovimientosAprobaciones", b =>
                 {
                     b.Property<int>("Id")
@@ -409,7 +464,7 @@ namespace solicitudMovimientosPcs.Migrations
                         .HasColumnName("DEPARTAMENTO");
 
                     b.Property<DateTime>("Fecha")
-                        .HasColumnType("date")
+                        .HasColumnType("datetime2(0)")
                         .HasColumnName("FECHA");
 
                     b.Property<string>("Linea")
@@ -464,6 +519,32 @@ namespace solicitudMovimientosPcs.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("PC_MOVIMIENTOS_REQUEST", (string)null);
+                });
+
+            modelBuilder.Entity("solicitudMovimientosPcs.Models.Security.StageAccess", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("Id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Stage")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasColumnName("Stage");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)")
+                        .HasColumnName("DisplayName");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PC_STAGE_ACCESS", (string)null);
                 });
 
             modelBuilder.Entity("solicitudMovimientosPcs.Models.PcMovimientosAprobaciones", b =>

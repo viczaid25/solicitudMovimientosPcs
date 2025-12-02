@@ -42,8 +42,8 @@ namespace solicitudMovimientosPcs.Controllers
                 new("Y","Y"), new("H","H"), new("N","N")
             };
 
-                    // Monedas (MXN/USD/JPY)
-                    ViewBag.Monedas = new List<SelectListItem> {
+            // Monedas (MXN/USD/JPY)
+            ViewBag.Monedas = new List<SelectListItem> {
                 new("MXN","MXN"), new("USD","USD"), new("JPY","JPY")
             };
 
@@ -58,8 +58,15 @@ namespace solicitudMovimientosPcs.Controllers
                 .ToListAsync();
         }
 
-        // GET: /Requests/Create
+        // Clases que requieren aprobación MC
+        private static readonly HashSet<string> McRequiredClases =
+            new(new[] { "112", "122", "211", "221", "221KT", "221ST", "311", "312", "321", "322", "511", "812", "822" },
+                StringComparer.OrdinalIgnoreCase);
 
+        private static bool RequiresMc(IEnumerable<PcMovimientosItem>? items)
+            => items != null && items.Any(i => !string.IsNullOrWhiteSpace(i.ClaseA) && McRequiredClases.Contains(i.ClaseA.Trim()));
+
+        // GET: /Requests/Create
         [HttpGet]
         public async Task<IActionResult> Create()
         {
@@ -67,8 +74,8 @@ namespace solicitudMovimientosPcs.Controllers
 
             var model = new PcMovimientosRequest
             {
-                Fecha = DateTime.Now,
-                Solicitante = solicitante,   // <- se muestra en la vista
+                Fecha = DateTime.Now, // guarda fecha + hora
+                Solicitante = solicitante,
                 Urgencia = Urgencia.Media,
                 RequestStatus = RequestStatus.Nuevo,
                 Items = new List<PcMovimientosItem> { new PcMovimientosItem { Numero = 1 } }
@@ -81,9 +88,11 @@ namespace solicitudMovimientosPcs.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
-    [Bind("Fecha,Departamento,Linea,Comentarios,Urgencia,Items")] PcMovimientosRequest form,
-    [FromForm] string[]? TiposMovimiento) // ← aquí llegan FDO/PDO/MLO/ESTATUS
+            [Bind("Departamento,Linea,Comentarios,Urgencia,Items")] PcMovimientosRequest form,
+            [FromForm] string[]? TiposMovimiento)
         {
+            form.Fecha = DateTime.Now; // fecha + hora
+
             var solicitante = User.FindFirst("DisplayName")?.Value ?? User.Identity?.Name ?? string.Empty;
             form.Solicitante = solicitante;
 
@@ -92,13 +101,13 @@ namespace solicitudMovimientosPcs.Controllers
 
             // Normaliza selección (CSV) para persistir
             var tiposSet = (TiposMovimiento ?? Array.Empty<string>())
-                            .Select(t => t?.Trim().ToUpperInvariant())
-                            .Where(t => t is "FDO" or "PDO" or "MLO" or "ESTATUS")
-                            .Distinct()
-                            .ToArray();
+                .Select(t => t?.Trim().ToUpperInvariant())
+                .Where(t => t is "FDO" or "PDO" or "WDO" or "MLO" or "ESTATUS")
+                .Distinct()
+                .ToArray();
             form.PcTiposMovimiento = string.Join(",", tiposSet);
 
-            // Validaciones habituales…
+            // Validaciones
             if (string.IsNullOrWhiteSpace(form.Comentarios))
                 ModelState.AddModelError(nameof(form.Comentarios), "Comentarios es requerido.");
 
@@ -127,8 +136,11 @@ namespace solicitudMovimientosPcs.Controllers
                 it.Total = (it.CostoU ?? 0m) * qtyBase;
             }
 
-            // ¿Se debe saltar FIN? (si hay MLO o ESTATUS)
-            bool skipFin = tiposSet.Contains("MLO") || tiposSet.Contains("ESTATUS");
+            // Reglas de aprobación:
+            // FIN requiere aprobación si hay FDO/PDO/WDO (aunque también esté ESTATUS).
+            bool requireFin = tiposSet.Any(t => t is "FDO" or "PDO" or "WDO");
+            // MC requiere aprobación si al menos un item está en las clases establecidas.
+            bool requireMc = RequiresMc(form.Items);
 
             using var tx = await _db.Database.BeginTransactionAsync();
             try
@@ -145,21 +157,26 @@ namespace solicitudMovimientosPcs.Controllers
                 var aprob = new PcMovimientosAprobaciones
                 {
                     RequestId = form.Id,
+
+                    // Siempre pendientes de inicio:
                     MngStatus = ApprovalStatus.PENDING,
                     JpnStatus = ApprovalStatus.PENDING,
-                    McStatus = ApprovalStatus.PENDING,
                     PlStatus = ApprovalStatus.PENDING,
                     PcMngStatus = ApprovalStatus.PENDING,
                     PcJpnStatus = ApprovalStatus.PENDING,
 
-                    // Si skipFin => márquelas como aprobadas automáticamente
-                    FinMngStatus = skipFin ? ApprovalStatus.APPROVED : ApprovalStatus.PENDING,
-                    FinJpnStatus = skipFin ? ApprovalStatus.APPROVED : ApprovalStatus.PENDING,
+                    // MC: pendiente sólo si aplica; si no, auto-aprobado
+                    McStatus = requireMc ? ApprovalStatus.PENDING : ApprovalStatus.APPROVED,
+                    Mc = requireMc ? null : sys,
+                    McDate = requireMc ? null : now,
 
-                    FinMng = skipFin ? sys : null,
-                    FinJpn = skipFin ? sys : null,
-                    FinMngDate = skipFin ? now : null,
-                    FinJpnDate = skipFin ? now : null
+                    // FIN: pendiente sólo si requireFin; si no, auto-aprobado
+                    FinMngStatus = requireFin ? ApprovalStatus.PENDING : ApprovalStatus.APPROVED,
+                    FinJpnStatus = requireFin ? ApprovalStatus.PENDING : ApprovalStatus.APPROVED,
+                    FinMng = requireFin ? null : sys,
+                    FinJpn = requireFin ? null : sys,
+                    FinMngDate = requireFin ? null : now,
+                    FinJpnDate = requireFin ? null : now
                 };
 
                 _db.PcMovimientosAprobaciones.Add(aprob);
@@ -177,8 +194,6 @@ namespace solicitudMovimientosPcs.Controllers
             }
         }
 
-
-
         // GET: /Requests/Details/5
         [HttpGet]
         public async Task<IActionResult> Details(int id)
@@ -193,7 +208,6 @@ namespace solicitudMovimientosPcs.Controllers
         }
 
         // GET: /Requests/My
-        // Muestra las solicitudes del usuario actual (o de 'solicitante' si lo envías por querystring)
         [HttpGet]
         public async Task<IActionResult> My()
         {
@@ -236,14 +250,13 @@ namespace solicitudMovimientosPcs.Controllers
                 || req.RequestStatus != RequestStatus.PorModificar)
                 return Forbid();
 
-            // Cargar catálogos a ViewBag como en Create
             await LoadItemCombosAsync();
             return View("Create", req); // reutiliza la vista Create
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, PcMovimientosRequest model)
+        public async Task<IActionResult> Edit(int id, PcMovimientosRequest model, [FromForm] string[]? TiposMovimiento)
         {
             var display = User.FindFirst("DisplayName")?.Value ?? User.Identity?.Name ?? "";
 
@@ -258,26 +271,41 @@ namespace solicitudMovimientosPcs.Controllers
                 || req.RequestStatus != RequestStatus.PorModificar)
                 return Forbid();
 
+            // Normaliza selección (CSV) para persistir
+            var tiposSet = (TiposMovimiento ?? Array.Empty<string>())
+               .Select(t => t?.Trim().ToUpperInvariant())
+               .Where(t => t is "FDO" or "PDO" or "WDO" or "MLO" or "ESTATUS")
+               .Distinct()
+               .ToArray();
+            model.PcTiposMovimiento = string.Join(",", tiposSet);
+
             if (!ModelState.IsValid)
             {
                 await LoadItemCombosAsync();
                 return View("Create", model);
             }
 
-            // Actualiza campos de cabecera que permites cambiar
+            // Actualiza cabecera permitida
             req.Departamento = model.Departamento;
             req.Linea = model.Linea;
             req.Comentarios = model.Comentarios;
             req.Urgencia = model.Urgencia;
+            req.PcTiposMovimiento = model.PcTiposMovimiento;
 
             // Reemplaza items
             _db.PcMovimientosItems.RemoveRange(req.Items);
             req.Items = model.Items ?? new List<PcMovimientosItem>();
             foreach (var it in req.Items) it.IdSolicitud = req.Id;
 
-            // Resetea aprobaciones a PENDING y limpia firmas/fechas
+            // Reglas de aprobación
+            bool requireFin = tiposSet.Any(t => t is "FDO" or "PDO" or "WDO");
+            bool requireMc = RequiresMc(model.Items);
+
+            // Resetea aprobaciones según reglas (una sola llamada)
             if (req.Aprobaciones != null)
-                ResetApprovals(req.Aprobaciones);
+            {
+                ResetApprovals(req.Aprobaciones, requireFin: requireFin, requireMc: requireMc);
+            }
 
             // Regresa al flujo normal
             req.RequestStatus = RequestStatus.Nuevo;
@@ -287,16 +315,48 @@ namespace solicitudMovimientosPcs.Controllers
             return RedirectToAction(nameof(My));
         }
 
-        private void ResetApprovals(PcMovimientosAprobaciones a)
+        private void ResetApprovals(PcMovimientosAprobaciones a, bool requireFin, bool requireMc)
         {
+            // Limpia firmas/fechas
             a.Mng = a.Jpn = a.Mc = a.Pl = a.PcMng = a.PcJpn = a.FinMng = a.FinJpn = null;
             a.MngDate = a.JpnDate = a.McDate = a.PlDate = a.PcMngDate = a.PcJpnDate = a.FinMngDate = a.FinJpnDate = null;
 
-            a.MngStatus = a.JpnStatus = a.McStatus = a.PlStatus =
-            a.PcMngStatus = a.PcJpnStatus = a.FinMngStatus = a.FinJpnStatus = ApprovalStatus.PENDING;
+            // Etapas base a pendientes
+            a.MngStatus = ApprovalStatus.PENDING;
+            a.JpnStatus = ApprovalStatus.PENDING;
+            a.PlStatus = ApprovalStatus.PENDING;
+            a.PcMngStatus = ApprovalStatus.PENDING;
+            a.PcJpnStatus = ApprovalStatus.PENDING;
+
+            var now = DateTime.Now;
+
+            // MC
+            if (requireMc)
+            {
+                a.McStatus = ApprovalStatus.PENDING;
+            }
+            else
+            {
+                a.McStatus = ApprovalStatus.APPROVED;
+                a.Mc = "SYSTEM";
+                a.McDate = now;
+            }
+
+            // FIN
+            if (requireFin)
+            {
+                a.FinMngStatus = ApprovalStatus.PENDING;
+                a.FinJpnStatus = ApprovalStatus.PENDING;
+            }
+            else
+            {
+                a.FinMngStatus = ApprovalStatus.APPROVED;
+                a.FinJpnStatus = ApprovalStatus.APPROVED;
+                a.FinMng = "SYSTEM";
+                a.FinJpn = "SYSTEM";
+                a.FinMngDate = now;
+                a.FinJpnDate = now;
+            }
         }
-
-
-
     }
 }

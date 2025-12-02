@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using solicitudMovimientosPcs.Models;
 using solicitudMovimientosPcs.Models.Catalogs;
+using solicitudMovimientosPcs.Models.Security;
+
 
 namespace solicitudMovimientosPcs.Data
 {
@@ -22,6 +24,9 @@ namespace solicitudMovimientosPcs.Data
         public DbSet<PcMovimientosCodigo> PcMovimientosCodigos { get; set; } = default!;
         public DbSet<PcMovimientosCodMovimiento> PcMovimientosCodMovimientos { get; set; } = default!;
         public DbSet<PcMovimientosUbicacion> PcMovimientosUbicaciones { get; set; } = default!;
+        public DbSet<StageAccess> StageAccesses { get; set; } = default!;
+
+        public DbSet<UsersAd> UsersAd { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -41,16 +46,12 @@ namespace solicitudMovimientosPcs.Data
                 e.Property(p => p.Departamento).HasMaxLength(100).IsRequired();
                 e.Property(p => p.Linea).HasMaxLength(100).IsRequired();
                 e.Property(p => p.Comentarios).HasMaxLength(300);
-
-                e.Property(p => p.Fecha).HasColumnType("date");
-
+                e.Property(p => p.Fecha).HasColumnType("datetime2(0)");
                 e.Property(p => p.PcFolio).HasMaxLength(50);
                 e.Property(p => p.PcDocumentoPath).HasMaxLength(260);
-
                 e.Property(p => p.PcFinalizadoPor).HasMaxLength(100);
                 e.Property(p => p.PcFinalDate);
 
-                // Enums como VARCHAR (string)
                 e.Property(p => p.Urgencia)
                  .HasConversion(urgenciaConverter)
                  .HasMaxLength(50)
@@ -60,6 +61,10 @@ namespace solicitudMovimientosPcs.Data
                  .HasConversion(statusConverter)
                  .HasMaxLength(20)
                  .IsRequired();
+
+                e.Property(x => x.Fecha)
+                 .HasColumnName("FECHA")
+                 .HasColumnType("datetime2(0)");
             });
 
             // ===== PcMovimientosItem =====
@@ -165,6 +170,28 @@ namespace solicitudMovimientosPcs.Data
                 e.Property(x => x.Ubicacion).HasMaxLength(10).IsRequired();
                 e.Property(x => x.Area).HasMaxLength(20).IsRequired();
                 e.HasIndex(x => x.Area);
+            });
+
+            modelBuilder.Entity<StageAccess>(e =>
+            {
+                e.ToTable("PC_STAGE_ACCESS");
+                e.HasKey(x => x.Id);
+                e.Property(x => x.Stage).HasColumnName("Stage").HasMaxLength(20).IsRequired();
+                e.Property(x => x.UserName).HasColumnName("DisplayName").HasMaxLength(120).IsRequired();
+            });
+
+            modelBuilder.Entity<UsersAd>(e =>
+            {
+                e.ToTable("users_ad", "dbo", tb => tb.ExcludeFromMigrations());
+                e.HasKey(x => x.Id);
+                e.Property(x => x.PcLoginId).HasMaxLength(50).IsRequired();
+                e.Property(x => x.Username).HasMaxLength(100);
+                e.Property(x => x.Email).HasMaxLength(100);
+
+                // índices útiles para búsquedas
+                e.HasIndex(x => x.Username);
+                e.HasIndex(x => x.Email);
+                e.HasIndex(x => x.PcLoginId);
             });
         }
     }

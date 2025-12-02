@@ -1,83 +1,237 @@
 ﻿@model solicitudMovimientosPcs.Models.PcFinal.PcFinalizarViewModel
+@using solicitudMovimientosPcs.Models
 @{
     ViewData["Title"] = "Finalizar solicitud";
+    var req = Model.Request;
+    var items = req?.Items ?? new List<PcMovimientosItem>();
+    decimal sumTotal = items.Sum(x => x.Total ?? 0m);
+    decimal sumDif = items.Sum(x => x.Diferencia ?? 0m);
+
+    string BadgeForUrgencia(Urgencia u) => u switch
+    {
+        Urgencia.Critica => "badge bg-danger",
+        Urgencia.Alta => "badge bg-warning text-dark",
+        Urgencia.Media => "badge bg-info text-dark",
+        _ => "badge bg-secondary"
+    };
 }
 
-<div class="card">
-    <div class="card-header bg-primary text-white">
-        <h5 class="mb-0">Finalizar solicitud #@Model.RequestId</h5>
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center custom-header-primary">
+        <div class="d-flex align-items-center gap-2">
+            <i class="fas fa-clipboard-check me-2"></i>
+            <h5 class="mb-0">Finalizar solicitud #@Model.RequestId</h5>
+            @if (req is not null)
+            {
+                <span class="badge badge-on-primary ms-2">
+                    <i class="fa fa-calendar-day me-1"></i>@req.Fecha.ToString("yyyy-MM-dd")
+                </span>
+
+                <span class="badge badge-on-primary">
+                    <i class="fa fa-boxes-stacked me-1"></i>@items.Count items
+                </span>
+
+                <span class="@BadgeForUrgencia(req.Urgencia)">
+                    @req.Urgencia
+                </span>
+            }
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(req?.PcFolio))
+        {
+            <span class="badge bg-success">
+                <i class="fa fa-hashtag me-1"></i> Folio actual: <strong>@req.PcFolio</strong>
+            </span>
+        }
+        else
+        {
+            <span class="badge bg-warning text-dark">
+                <i class="fa fa-exclamation-circle me-1"></i> Folio pendiente
+            </span>
+        }
     </div>
+
+    <!-- KPI banner: blanco + negritas -->
+    <div class="kpi-banner bg-primary">
+        <div class="container-fluid py-2">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="text-white fw-bold">
+                        <i class="fa fa-scale-balanced me-1"></i> Diferencia neta: @sumDif.ToString("N2")
+                    </span>
+                    <span class="text-white fw-bold"> | </span>
+                    <span class="text-white fw-bold">
+                        <i class="fa fa-sack-dollar me-1"></i> Total: @sumTotal.ToString("N2")
+                    </span>
+                </div>
+                @* Si quieres un CTA rápido aquí:
+                <a asp-action="Index" class="btn btn-sm btn-outline-light fw-bold">Volver</a>
+                *@
+            </div>
+        </div>
+    </div>
+
     <div class="card-body">
         <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
 
-        @if (Model.Request != null)
+        @if (req != null)
         {
+            <!-- Resumen compacto en chips -->
             <div class="row g-3 mb-3">
                 <div class="col-md-3">
-                    <label class="form-label">Fecha</label>
-                    <input class="form-control" value="@Model.Request.Fecha.ToString("yyyy-MM-dd")" readonly />
+                    <div class="info-chip">
+                        <div class="text-muted small">Solicitante</div>
+                        <div class="fw-semibold"><i class="fa fa-user me-1"></i>@req.Solicitante</div>
+                    </div>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Solicitante</label>
-                    <input class="form-control" value="@Model.Request.Solicitante" readonly />
+                    <div class="info-chip">
+                        <div class="text-muted small">Departamento</div>
+                        <div class="fw-semibold"><i class="fa fa-building me-1"></i>@req.Departamento</div>
+                    </div>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Departamento</label>
-                    <input class="form-control" value="@Model.Request.Departamento" readonly />
+                    <div class="info-chip">
+                        <div class="text-muted small">Línea</div>
+                        <div class="fw-semibold"><i class="fa fa-industry me-1"></i>@req.Linea</div>
+                    </div>
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Línea</label>
-                    <input class="form-control" value="@Model.Request.Linea" readonly />
+                    <div class="info-chip">
+                        <div class="text-muted small">Tipos de movimiento (captura)</div>
+                        <div class="fw-semibold"><i class="fa fa-tags me-1"></i>@req.PcTiposMovimiento</div>
+                    </div>
                 </div>
                 <div class="col-12">
-                    <label class="form-label">Comentarios</label>
-                    <textarea class="form-control" rows="2" readonly>@Model.Request.Comentarios</textarea>
+                    <div class="info-chip">
+                        <div class="text-muted small">Comentarios</div>
+                        <div class="fw-semibold">@req.Comentarios</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items (se mantiene tu tabla tal cual) -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <i class="fa fa-list me-2"></i> Items (@items.Count)
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive" style="overflow-x:auto">
+                        <table class="table table-sm mb-0 align-middle" style="min-width:1100px">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>No.</th>
+                                    <th>Núm. Parte</th>
+                                    <th style="min-width:240px">Descripción</th>
+                                    <th>Case</th>
+                                    <th>CodMov</th>
+                                    <th>Clase A</th>
+                                    <th>Ubic A</th>
+                                    <th class="text-end">Cant A</th>
+                                    <th>Estatus A</th>
+                                    <th>Clase D</th>
+                                    <th>Ubic D</th>
+                                    <th class="text-end">Cant D</th>
+                                    <th>Estatus D</th>
+                                    <th>Moneda</th>
+                                    <th class="text-end">Costo U</th>
+                                    <th class="text-end">Diferencia</th>
+                                    <th class="text-end">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (items.Count == 0)
+                                {
+                                    <tr><td colspan="17" class="text-center text-muted py-3">Sin items capturados.</td></tr>
+                                }
+                                else
+                                {
+                                    foreach (var it in items)
+                                    {
+                                        <tr>
+                                            <td>@it.Numero</td>
+                                            <td>@it.NumParte</td>
+                                            <td style="word-break:break-word">@it.Descripcion</td>
+                                            <td>@it.Case</td>
+                                            <td>@it.CodMov</td>
+                                            <td>@it.ClaseA</td>
+                                            <td>@it.UbicacionA</td>
+                                            <td class="text-end">@it.CantidadA?.ToString("0.##")</td>
+                                            <td>@it.EstatusA</td>
+                                            <td>@it.ClaseD</td>
+                                            <td>@it.UbicacionD</td>
+                                            <td class="text-end">@it.CantidadD?.ToString("0.##")</td>
+                                            <td>@it.EstatusD</td>
+                                            <td>@it.Moneda</td>
+                                            <td class="text-end">@it.CostoU?.ToString("0.##")</td>
+                                            <td class="text-end">@it.Diferencia?.ToString("0.##")</td>
+                                            <td class="text-end">@it.Total?.ToString("0.##")</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                            @if (items.Count > 0)
+                            {
+                                <tfoot class="table-light">
+                                    <tr>
+                                        <th colspan="15" class="text-end">Totales:</th>
+                                        <th class="text-end">@sumDif.ToString("0.##")</th>
+                                        <th class="text-end">@sumTotal.ToString("0.##")</th>
+                                    </tr>
+                                </tfoot>
+                            }
+                        </table>
+                    </div>
                 </div>
             </div>
         }
 
+        <!-- Formulario Finalizar -->
         <form asp-action="Finalizar" method="post" enctype="multipart/form-data" class="vstack gap-3">
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="RequestId" />
 
-            <!-- NUEVO: Tipo de Movimiento -->
-            <div>
-                <label asp-for="TipoMovimiento" class="form-label">Tipo de Movimiento</label>
-                <select asp-for="TipoMovimiento" class="form-select" required>
-                    <option value="">-- Selecciona --</option>
-                    <option value="FDO">FDO</option>
-                    <option value="PDO">PDO</option>
-                    <option value="MLO">MLO</option>
-                    <option value="ESTATUS">ESTATUS</option>
-                </select>
-                <span asp-validation-for="TipoMovimiento" class="text-danger"></span>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label asp-for="TipoMovimiento" class="form-label">Tipo de Movimiento</label>
+                    <select asp-for="TipoMovimiento" class="form-select" required>
+                        <option value="">-- Selecciona --</option>
+                        <option value="FDO">FDO</option>
+                        <option value="PDO">PDO</option>
+                        <option value="WDO">WDO</option>
+                        <option value="MLO">MLO</option>
+                        <option value="ESTATUS">ESTATUS</option>
+                    </select>
+                    <span asp-validation-for="TipoMovimiento" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="Folio" class="form-label">Folio PC</label>
+                    <input asp-for="Folio" class="form-control" maxlength="50" />
+                    <span asp-validation-for="Folio" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-4">
+                    <label asp-for="Documento" class="form-label">Documento (PDF, DOC[X], XLS[X], PNG, JPG)</label>
+                    <input asp-for="Documento" type="file" class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" />
+                    <span asp-validation-for="Documento" class="text-danger"></span>
+                    @if (!string.IsNullOrWhiteSpace(req?.PcDocumentoPath))
+                    {
+                        <div class="form-text mt-1">
+                            Documento actual:
+                            <a href="@req.PcDocumentoPath" target="_blank" rel="noopener">ver/descargar</a>
+                        </div>
+                    }
+                </div>
             </div>
 
-            <div>
-                <label asp-for="Folio" class="form-label">Folio PC</label>
-                <input asp-for="Folio" class="form-control" maxlength="50" />
-                <span asp-validation-for="Folio" class="text-danger"></span>
-            </div>
-
-            <div>
-                <label asp-for="Documento" class="form-label">Documento (PDF, DOC[X], XLS[X], PNG, JPG)</label>
-                <input asp-for="Documento" type="file" class="form-control" />
-                <span asp-validation-for="Documento" class="text-danger"></span>
-
-                @if (!string.IsNullOrWhiteSpace(Model.Request?.PcDocumentoPath))
-                {
-                    <div class="form-text mt-1">
-                        Documento actual:
-                        <a href="@Model.Request.PcDocumentoPath" target="_blank">ver/descargar</a>
-                    </div>
-                }
-            </div>
-
-            <div class="text-end">
+            <div class="d-flex justify-content-end">
+                <a asp-action="Index" class="btn btn-outline-secondary me-2">
+                    <i class="fa fa-arrow-left me-1"></i> Volver
+                </a>
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-check me-1"></i> Finalizar
                 </button>
-                <a asp-action="Index" class="btn btn-secondary ms-2">Volver</a>
             </div>
         </form>
     </div>
@@ -85,4 +239,38 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+}
+
+@section Styles {
+    <style>
+        /* Banda KPI con contraste alto */
+        .kpi-banner {
+            background: var(--color-primary, #2c5fa8);
+            box-shadow: inset 0 -1px 0 rgba(255,255,255,.15);
+        }
+
+        /* Chips informativos compactos */
+        .info-chip {
+            background: #fff;
+            border: 1px solid var(--border, #e5e7eb);
+            border-radius: var(--radius-sm, 8px);
+            padding: .75rem .9rem;
+            box-shadow: var(--shadow-sm, 0 2px 6px rgba(0,0,0,.06));
+        }
+
+        /* Header con gradiente si tienes .custom-header-primary en tu site.css */
+        .custom-header-primary {
+            background: var(--color-primary-gradient, linear-gradient(90deg,#2c5fa8,#3a7fc1)) !important;
+        }
+
+        /* Ajustes de badges en header */
+        .card-header .badge {
+            letter-spacing: .2px;
+        }
+
+        /* Inputs/Selects un poco más compactos */
+        .form-control, .form-select {
+            padding: .45rem .75rem;
+        }
+    </style>
 }

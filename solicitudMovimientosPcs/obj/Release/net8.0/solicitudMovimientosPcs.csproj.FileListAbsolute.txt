@@ -169,12 +169,6 @@ C:\Users\dm45207\source\repos\solicitudMovimientosPcs\solicitudMovimientosPcs\ob
 C:\Users\dm45207\source\repos\solicitudMovimientosPcs\solicitudMovimientosPcs\obj\Release\net8.0\staticwebassets.build.json
 C:\Users\dm45207\source\repos\solicitudMovimientosPcs\solicitudMovimientosPcs\obj\Release\net8.0\staticwebassets.development.json
 C:\Users\dm45207\source\repos\solicitudMovimientosPcs\solicitudMovimientosPcs\obj\Release\net8.0\staticwebassets.build.endpoints.json
-C:\Users\dm45207\source\repos\solicitudMovimientosPcs\solicitudMovimientosPcs\obj\Release\net8.0\staticwebassets\msbuild.solicitudMovimientosPcs.Microsoft.AspNetCore.StaticWebAssets.props
-C:\Users\dm45207\source\repos\solicitudMovimientosPcs\solicitudMovimientosPcs\obj\Release\net8.0\staticwebassets\msbuild.solicitudMovimientosPcs.Microsoft.AspNetCore.StaticWebAssetEndpoints.props
-C:\Users\dm45207\source\repos\solicitudMovimientosPcs\solicitudMovimientosPcs\obj\Release\net8.0\staticwebassets\msbuild.build.solicitudMovimientosPcs.props
-C:\Users\dm45207\source\repos\solicitudMovimientosPcs\solicitudMovimientosPcs\obj\Release\net8.0\staticwebassets\msbuild.buildMultiTargeting.solicitudMovimientosPcs.props
-C:\Users\dm45207\source\repos\solicitudMovimientosPcs\solicitudMovimientosPcs\obj\Release\net8.0\staticwebassets\msbuild.buildTransitive.solicitudMovimientosPcs.props
-C:\Users\dm45207\source\repos\solicitudMovimientosPcs\solicitudMovimientosPcs\obj\Release\net8.0\staticwebassets.pack.json
 C:\Users\dm45207\source\repos\solicitudMovimientosPcs\solicitudMovimientosPcs\obj\Release\net8.0\staticwebassets.upToDateCheck.txt
 C:\Users\dm45207\source\repos\solicitudMovimientosPcs\solicitudMovimientosPcs\obj\Release\net8.0\solicitu.73436374.Up2Date
 C:\Users\dm45207\source\repos\solicitudMovimientosPcs\solicitudMovimientosPcs\obj\Release\net8.0\solicitudMovimientosPcs.dll
@@ -182,3 +176,8 @@ C:\Users\dm45207\source\repos\solicitudMovimientosPcs\solicitudMovimientosPcs\ob
 C:\Users\dm45207\source\repos\solicitudMovimientosPcs\solicitudMovimientosPcs\obj\Release\net8.0\solicitudMovimientosPcs.pdb
 C:\Users\dm45207\source\repos\solicitudMovimientosPcs\solicitudMovimientosPcs\obj\Release\net8.0\solicitudMovimientosPcs.genruntimeconfig.cache
 C:\Users\dm45207\source\repos\solicitudMovimientosPcs\solicitudMovimientosPcs\obj\Release\net8.0\ref\solicitudMovimientosPcs.dll
+C:\Users\dm45207\source\repos\solicitudMovimientosPcs\solicitudMovimientosPcs\obj\Release\net8.0\rpswa.dswa.cache.json
+C:\Users\dm45207\source\repos\solicitudMovimientosPcs\solicitudMovimientosPcs\obj\Release\net8.0\rjimswa.dswa.cache.json
+C:\Users\dm45207\source\repos\solicitudMovimientosPcs\solicitudMovimientosPcs\obj\Release\net8.0\rjsmrazor.dswa.cache.json
+C:\Users\dm45207\source\repos\solicitudMovimientosPcs\solicitudMovimientosPcs\obj\Release\net8.0\rjsmcshtml.dswa.cache.json
+C:\Users\dm45207\source\repos\solicitudMovimientosPcs\solicitudMovimientosPcs\obj\Release\net8.0\staticwebassets.build.json.cache

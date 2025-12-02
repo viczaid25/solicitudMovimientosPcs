@@ -1,56 +1,224 @@
 ﻿@model IEnumerable<solicitudMovimientosPcs.Models.PcMovimientosRequest>
+@using solicitudMovimientosPcs.Models
+
 @{
     ViewData["Title"] = "Finalización PC";
+    var total = Model?.Count() ?? 0;
+    var conFolio = Model?.Count(r => !string.IsNullOrWhiteSpace(r.PcFolio)) ?? 0;
+    var sinFolio = total - conFolio;
+    var pct = total > 0 ? (int)Math.Round(100.0 * conFolio / total) : 0;
 }
 
-<h2 class="mb-3">Finalización PC</h2>
+<div class="d-flex align-items-center justify-content-between mb-2">
+    <h2 class="mb-0">
+        <i class="fa fa-check-double me-2"></i> Finalización PC
+    </h2>
+
+    <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-primary">Total: @total</span>
+        <span class="badge bg-success">Con folio: @conFolio</span>
+        <span class="badge bg-warning text-dark">Sin folio: @sinFolio</span>
+
+        <!-- CTA alto contraste sobre header/áreas claras -->
+        <button id="btn-csv" class="btn btn-sm btn-outline-primary fw-bold header-cta">
+            <i class="fa fa-file-csv me-1"></i> Exportar CSV (filtrado)
+        </button>
+    </div>
+</div>
 
 @if (TempData["Ok"] != null)
 {
-    <div class="alert alert-success">@TempData["Ok"]</div>
+    <div class="alert alert-success"><i class="fa fa-check-circle me-2"></i>@TempData["Ok"]</div>
 }
 @if (TempData["Error"] != null)
 {
-    <div class="alert alert-danger">@TempData["Error"]</div>
+    <div class="alert alert-danger"><i class="fa fa-times-circle me-2"></i>@TempData["Error"]</div>
 }
+
+<!-- Resumen visual -->
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="d-flex flex-wrap align-items-center gap-3">
+            <div>
+                <div class="text-muted small mb-1">Avance con Folio PC</div>
+                <div class="progress" style="width:240px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width:@pct%;" aria-valuenow="@pct" aria-valuemin="0" aria-valuemax="100">
+                        @pct%
+                    </div>
+                </div>
+            </div>
+            <div class="vr d-none d-md-block"></div>
+            <div class="d-flex gap-2">
+                <span class="badge bg-light text-dark">
+                    <i class="fa fa-info-circle me-1"></i> Finaliza las solicitudes con <strong>Folio PC</strong> capturado.
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
 
 @if (!Model.Any())
 {
-    <div class="alert alert-info">No hay solicitudes listas para finalizar.</div>
+    <div class="alert alert-info"><i class="fa fa-inbox me-2"></i>No hay solicitudes listas para finalizar.</div>
 }
 else
 {
-    <div class="table-responsive">
-        <table class="table table-hover align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>ID</th>
-                    <th>Fecha</th>
-                    <th>Solicitante</th>
-                    <th>Departamento</th>
-                    <th>Línea</th>
-                    <th>Folio PC</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var r in Model)
-                {
-                    <tr>
-                        <td>@r.Id</td>
-                        <td>@r.Fecha.ToString("yyyy-MM-dd")</td>
-                        <td>@r.Solicitante</td>
-                        <td>@r.Departamento</td>
-                        <td>@r.Linea</td>
-                        <td>@(string.IsNullOrWhiteSpace(r.PcFolio) ? "-" : r.PcFolio)</td>
-                        <td class="text-end">
-                            <a asp-action="Finalizar" asp-route-id="@r.Id" class="btn btn-sm btn-primary">
-                                <i class="fas fa-clipboard-check me-1"></i> Finalizar
-                            </a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white custom-header-primary">
+            <span><i class="fa fa-list me-2"></i> Pendientes</span>
+            <!-- Duplico botón aquí por accesibilidad visual en header -->
+            <button id="btn-csv-header" class="btn btn-sm btn-outline-light fw-bold header-cta">
+                <i class="fa fa-file-csv me-1"></i> Exportar CSV (filtrado)
+            </button>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="pcfinal-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Fecha</th>
+                            <th>Solicitante</th>
+                            <th>Departamento</th>
+                            <th>Línea</th>
+                            <th>Urgencia</th>
+                            <th>Folio PC</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model)
+                        {
+                            var tieneFolio = !string.IsNullOrWhiteSpace(r.PcFolio);
+                            <tr class="@(tieneFolio ? "" : "table-warning")">
+                                <td>#@r.Id</td>
+                                <td>@r.Fecha.ToString("yyyy-MM-dd")</td>
+                                <td>@r.Solicitante</td>
+                                <td>@r.Departamento</td>
+                                <td>@r.Linea</td>
+                                <td>
+                                    <span class="@BadgeForUrgencia(r.Urgencia)">@r.Urgencia</span>
+                                </td>
+                                <td>
+                                    @if (tieneFolio)
+                                    {
+                                        <span class="badge bg-success"><i class="fa fa-hashtag me-1"></i>@r.PcFolio</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark"><i class="fa fa-exclamation-circle me-1"></i>Pendiente</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <a asp-action="Finalizar" asp-route-id="@r.Id"
+                                       class="btn btn-sm btn-primary">
+                                        <i class="fas fa-clipboard-check me-1"></i> Finalizar
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
+}
+
+@functions {
+    string BadgeForUrgencia(Urgencia u) => u switch
+    {
+        Urgencia.Critica => "badge bg-danger",
+        Urgencia.Alta => "badge bg-warning text-dark",
+        Urgencia.Media => "badge bg-info text-dark",
+        _ => "badge bg-secondary"
+    };
+}
+
+@section Scripts {
+    <script>
+        (function(){
+          // Inicializa DataTables si está disponible
+          var $tbl = $('#pcfinal-table');
+          var dt = null;
+          if (window.jQuery && $.fn.DataTable) {
+            dt = $tbl.DataTable({
+              responsive: true,
+              pageLength: 10,
+              order: [[1,'desc']], // por fecha desc
+              language:{ url:'https://cdn.datatables.net/plug-ins/1.13.4/i18n/es-MX.json' }
+            });
+          }
+
+          function exportCSVFromTable(){
+              // Obtiene filas filtradas (si hay DataTables) o todas
+              var rows = [];
+              if (dt){
+                dt.rows({search:'applied'}).every(function(){
+                  rows.push(this.node());
+                });
+              } else {
+                rows = Array.from(document.querySelectorAll('#pcfinal-table tbody tr'));
+              }
+
+              // Encabezados
+              var headers = ["ID","Fecha","Solicitante","Departamento","Línea","Urgencia","Folio PC"];
+              var data = [headers];
+
+              // Filas
+              rows.forEach(function(tr){
+                var tds = tr.querySelectorAll('td');
+                if (!tds || tds.length < 8) return;
+                var row = [
+                  tds[0].innerText.trim(), // ID
+                  tds[1].innerText.trim(), // Fecha
+                  tds[2].innerText.trim(), // Solicitante
+                  tds[3].innerText.trim(), // Depto
+                  tds[4].innerText.trim(), // Línea
+                  tds[5].innerText.trim(), // Urgencia (badge text)
+                  tds[6].innerText.trim()  // Folio PC (badge text)
+                ];
+                data.push(row);
+              });
+
+              // Construye CSV
+              var csv = data.map(r => r.map(cell => {
+                var c = (cell || "").replaceAll('"','""');
+                return `"${c}"`;
+              }).join(',')).join('\r\n');
+
+              var blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+              var url = URL.createObjectURL(blob);
+              var a = document.createElement('a');
+              a.href = url;
+              a.download = 'pcfinal_filtrado.csv';
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+          }
+
+          // Botones (header y top)
+          document.getElementById('btn-csv')?.addEventListener('click', exportCSVFromTable);
+          document.getElementById('btn-csv-header')?.addEventListener('click', exportCSVFromTable);
+        })();
+    </script>
+}
+
+@section Styles {
+    <style>
+        /* Botón destacado en headers o zonas principales */
+        .header-cta {
+            letter-spacing: .2px;
+        }
+
+        /* Subrayado sutil al pasar sobre filas sin folio */
+        .table-warning:hover {
+            filter: saturate(105%);
+        }
+
+        /* Badges más legibles en esta vista */
+        .badge {
+            letter-spacing: .2px;
+        }
+    </style>
 }

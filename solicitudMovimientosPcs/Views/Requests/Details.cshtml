@@ -1,64 +1,558 @@
 ﻿@model solicitudMovimientosPcs.Models.PcMovimientosRequest
+@using Microsoft.AspNetCore.Html
+@using System.Net
+@using solicitudMovimientosPcs.Models
+
 @{
-    ViewData["Title"] = "Detalle Solicitud";
+    ViewData["Title"] = $"Solicitud #{Model.Id}";
+    var tipos = (Model.PcTiposMovimiento ?? "")
+        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    decimal sumTotal = (Model.Items ?? Enumerable.Empty<PcMovimientosItem>())
+        .Sum(x => x.Total ?? 0m);
 }
-<h2>Solicitud #@Model.Id</h2>
-<p><strong>Solicitante:</strong> @Model.Solicitante</p>
-<p><strong>Departamento:</strong> @Model.Departamento</p>
-<p><strong>Línea:</strong> @Model.Linea</p>
-<p><strong>Urgencia:</strong> @Model.Urgencia</p>
-<p><strong>Estatus:</strong> @Model.RequestStatus</p>
 
-<h4>Items</h4>
-<table class="table">
-    <thead>
-        <tr>
-            <th>No.</th>
-            <th>Núm. Parte</th>
-            <th>Descripción</th>
-            <th>ClaseA</th>
-            <th>UbicA</th>
-            <th>CantA</th>
-            <th>ClaseD</th>
-            <th>UbicD</th>
-            <th>CantD</th>
-            <th>CodMov</th>
-            <th>Moneda</th>
-            <th>Total</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var it in Model.Items.OrderBy(x => x.Numero))
-        {
-            <tr>
-                <td>@it.Numero</td>
-                <td>@it.NumParte</td>
-                <td>@it.Descripcion</td>
-                <td>@it.ClaseA</td>
-                <td>@it.UbicacionA</td>
-                <td>@it.CantidadA</td>
-                <td>@it.ClaseD</td>
-                <td>@it.UbicacionD</td>
-                <td>@it.CantidadD</td>
-                <td>@it.CodMov</td>
-                <td>@it.Moneda</td>
-                <td>@it.Total</td>
-            </tr>
-        }
-    </tbody>
-</table>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">
+        <i class="fas fa-file-alt me-2"></i> Solicitud #@Model.Id
+    </h2>
 
-@if (Model.Aprobaciones is not null)
+    <div class="d-flex gap-2">
+        <span class="badge @BadgeForUrgencia(Model.Urgencia)">@Model.Urgencia</span>
+        <span class="badge @BadgeForEstado(Model.RequestStatus)">@Model.RequestStatus</span>
+    </div>
+</div>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="text-muted small">Fecha</div>
+                <div class="fw-semibold">@Model.Fecha.ToString("yyyy-MM-dd HH:mm")</div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-muted small">Solicitante</div>
+                <div class="fw-semibold">@Model.Solicitante</div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-muted small">Departamento</div>
+                <div class="fw-semibold">@Model.Departamento</div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-muted small">Línea</div>
+                <div class="fw-semibold">@Model.Linea</div>
+            </div>
+
+            <div class="col-12">
+                <div class="text-muted small">Tipos de movimiento</div>
+                <div class="d-flex flex-wrap gap-2">
+                    @if (tipos.Any())
+                    {
+                        foreach (var t in tipos)
+                        {
+                            <span class="badge bg-secondary">@t</span>
+                        }
+                    }
+                    else
+                    {
+                        <span class="text-muted">—</span>
+                    }
+                </div>
+            </div>
+
+            <div class="col-12">
+                <div class="text-muted small">Comentarios</div>
+                <div class="border rounded p-2 bg-light">@Model.Comentarios</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ---------- Flujo de aprobación (Stepper compacto) ---------- *@
+@{
+    var apr = Model.Aprobaciones;
+
+    var stages = new[]
+    {
+        new { Key="MNG",   Label="MNG",    St = apr?.MngStatus,   User=apr?.Mng,    Dt=apr?.MngDate },
+        new { Key="JPN",   Label="JPN",    St = apr?.JpnStatus,   User=apr?.Jpn,    Dt=apr?.JpnDate },
+        new { Key="MC",    Label="MC",     St = apr?.McStatus,    User=apr?.Mc,     Dt=apr?.McDate },
+        new { Key="PL",    Label="PL",     St = apr?.PlStatus,    User=apr?.Pl,     Dt=apr?.PlDate },
+        new { Key="PCMNG", Label="PCMNG",  St = apr?.PcMngStatus, User=apr?.PcMng,  Dt=apr?.PcMngDate },
+        new { Key="PCJPN", Label="PCJPN",  St = apr?.PcJpnStatus, User=apr?.PcJpn,  Dt=apr?.PcJpnDate },
+        new { Key="FINMNG",Label="FINMNG", St = apr?.FinMngStatus,User=apr?.FinMng, Dt=apr?.FinMngDate },
+        new { Key="FINJPN",Label="FINJPN", St = apr?.FinJpnStatus,User=apr?.FinJpn, Dt=apr?.FinJpnDate },
+    };
+
+    // Paso “actual” = primero que no está aprobado, o el último si todos aprobaron
+    int currentIdx = -1;
+    for (int i = 0; i < stages.Length; i++)
+    {
+        var st = stages[i].St;
+        if (st == null || st == ApprovalStatus.PENDING || st == ApprovalStatus.MODIFY || st == ApprovalStatus.REJECTED)
+        { currentIdx = i; break; }
+    }
+    if (currentIdx == -1) currentIdx = stages.Length - 1;
+
+    // Relleno del rail: hasta el último APROBADO contiguo
+    int lastApprovedIdx = -1;
+    for (int i = 0; i < stages.Length; i++)
+    {
+        if (stages[i].St == ApprovalStatus.APPROVED) lastApprovedIdx = i; else break;
+    }
+    var progressPct = (stages.Length > 1)
+        ? Math.Clamp((int)Math.Round((lastApprovedIdx <= 0 ? 0 : lastApprovedIdx) * 100m / (stages.Length - 1)), 0, 100)
+        : 0;
+
+    string BadgeClass(ApprovalStatus? st)
+        => st == ApprovalStatus.APPROVED ? "is-done"
+         : st == ApprovalStatus.REJECTED ? "is-rejected"
+         : st == ApprovalStatus.MODIFY ? "is-modify"
+         : "is-pending";
+
+    string CurrentChip(ApprovalStatus? st)
+        => st == ApprovalStatus.APPROVED ? "bg-success"
+         : st == ApprovalStatus.REJECTED ? "bg-danger"
+         : st == ApprovalStatus.MODIFY ? "bg-warning text-dark"
+         : "bg-primary";
+
+    var curr = stages[currentIdx];
+}
+
+@if (apr is not null)
 {
-    <h4>Aprobaciones</h4>
-    <ul>
-        <li>MNG: @Model.Aprobaciones.MngStatus (@Model.Aprobaciones.MngDate?.ToString("g"))</li>
-        <li>JPN: @Model.Aprobaciones.JpnStatus (@Model.Aprobaciones.JpnDate?.ToString("g"))</li>
-        <li>MC: @Model.Aprobaciones.McStatus (@Model.Aprobaciones.McDate?.ToString("g"))</li>
-        <li>PL: @Model.Aprobaciones.PlStatus (@Model.Aprobaciones.PlDate?.ToString("g"))</li>
-        <li>PCMNG: @Model.Aprobaciones.PcMngStatus (@Model.Aprobaciones.PcMngDate?.ToString("g"))</li>
-        <li>PCJPN: @Model.Aprobaciones.PcJpnStatus (@Model.Aprobaciones.PcJpnDate?.ToString("g"))</li>
-        <li>FINMNG: @Model.Aprobaciones.FinMngStatus (@Model.Aprobaciones.FinMngDate?.ToString("g"))</li>
-        <li>FINJPN: @Model.Aprobaciones.FinJpnStatus (@Model.Aprobaciones.FinJpnDate?.ToString("g"))</li>
-    </ul>
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span><i class="fa fa-route me-2"></i> Flujo de aprobación</span>
+            <span class="badge @CurrentChip(curr.St)">
+                Estado actual: @curr.Label @((curr.St ?? ApprovalStatus.PENDING).ToString())
+            </span>
+        </div>
+
+        <div class="card-body">
+            <div class="stepper-scroll">
+                <div class="stepper-rail">
+                    <div class="stepper-rail-fill" style="width:@progressPct%"></div>
+                </div>
+
+                <div class="stepper-row">
+                    @for (int i = 0; i < stages.Length; i++)
+                    {
+                        var s = stages[i];
+                        var st = s.St;
+                        var cls = BadgeClass(st) + (i == currentIdx && (st == null || st == ApprovalStatus.PENDING) ? " is-current" : "");
+
+                        <div class="stepper-node @cls" title="@($"{s.Label} — {(st?.ToString() ?? "PENDING")}")" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                            <div class="dot">
+                                @if (st == ApprovalStatus.APPROVED)
+                                {
+                                    <i class="fa fa-check"></i>
+                                }
+                                else if (st == ApprovalStatus.REJECTED)
+                                {
+
+                                    <i class="fa fa-xmark"></i>
+                                }
+                                else if (st == ApprovalStatus.MODIFY)
+                                {
+
+                                    <i class="fa fa-pen"></i>
+                                }
+                                else
+                                {
+
+                                    <i class="fa fa-clock"></i>
+                                }
+                            </div>
+                            <div class="label">@s.Label</div>
+                            <div class="meta text-muted small">
+                                @(string.IsNullOrWhiteSpace(s.User) ? "-" : s.User)
+                                @if (s.Dt.HasValue)
+                                {
+                                    <span class="d-block">@s.Dt.Value.ToString("yyyy-MM-dd HH:mm")</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-3 small text-muted mt-3">
+                <span class="legend-dot done"></span> Aprobado
+                <span class="legend-dot current"></span> En curso / Atorado aquí
+                <span class="legend-dot modify"></span> En modificación
+                <span class="legend-dot rejected"></span> Rechazado
+                <span class="legend-dot pending"></span> Pendiente
+            </div>
+        </div>
+    </div>
+}
+
+
+@* ---------- Items ---------- *@
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+            <i class="fas fa-boxes-stacked me-2"></i> Items
+            <span class="text-muted">(@(Model.Items?.Count ?? 0))</span>
+        </div>
+        <div class="fw-semibold">Total: @sumTotal.ToString("N2")</div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive h-scroll">
+            <table class="table table-sm table-striped table-hover align-middle table-wide">
+                <thead class="table-light">
+                    <tr>
+                        <th class="col-no sticky-col">No.</th>
+                        <th class="col-numparte sticky-col-2">Núm. Parte</th>
+                        <th class="col-desc">Descripción</th>
+                        <th class="col-codmov">CodMov</th>
+                        <th class="col-case">Case</th>
+                        <th class="col-a">Clase A</th>
+                        <th class="col-a">Ubic A</th>
+                        <th class="col-num">Cant A</th>
+                        <th class="col-a">Estatus A</th>
+
+                        <th class="sep-col"></th>
+
+                        <th class="col-d">Clase D</th>
+                        <th class="col-d">Ubic D</th>
+                        <th class="col-num">Cant D</th>
+                        <th class="col-d">Estatus D</th>
+
+                        <th class="col-num">Diferencia</th>
+                        <th class="col-mon">Moneda</th>
+                        <th class="col-num">Costo U</th>
+                        <th class="col-num">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var it in (Model.Items ?? new List<PcMovimientosItem>()).OrderBy(x => x.Numero))
+                    {
+                        <tr>
+                            <td class="col-no sticky-col">@it.Numero</td>
+                            <td class="col-numparte sticky-col-2">@it.NumParte</td>
+                            <td>@it.Descripcion</td>
+                            <td>@it.CodMov</td>
+                            <td>@it.Case</td>
+                            <td>@it.ClaseA</td>
+                            <td>@it.UbicacionA</td>
+                            <td class="text-end">@((it.CantidadA ?? 0m).ToString("0.##"))</td>
+                            <td>@it.EstatusA</td>
+
+                            <td class="sep-col"></td>
+
+                            <td>@it.ClaseD</td>
+                            <td>@it.UbicacionD</td>
+                            <td class="text-end">@((it.CantidadD ?? 0m).ToString("0.##"))</td>
+                            <td>@it.EstatusD</td>
+
+                            <td class="text-end">@((it.Diferencia ?? 0m).ToString("0.##"))</td>
+                            <td>@it.Moneda</td>
+                            <td class="text-end">@((it.CostoU ?? 0m).ToString("0.##"))</td>
+                            <td class="text-end">@((it.Total ?? 0m).ToString("0.##"))</td>
+                        </tr>
+                    }
+                    @if (!(Model.Items?.Any() ?? false))
+                    {
+                        <tr><td colspan="18" class="text-center text-muted py-4">Sin items.</td></tr>
+                    }
+                </tbody>
+                <tfoot class="table-light">
+                    <tr>
+                        <th colspan="17" class="text-end">Total</th>
+                        <th class="text-end">@sumTotal.ToString("N2")</th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+@* ---------- Tabla de aprobaciones (detalle) ---------- *@
+@if (apr is not null)
+{
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-check-double me-2"></i> Aprobaciones
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-sm mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Etapa</th>
+                            <th>Estado</th>
+                            <th>Usuario</th>
+                            <th>Fecha</th>
+                            <th>Comentarios</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @StageRow("MNG", apr.MngStatus, apr.Mng, apr.MngDate, apr.MngComments)
+                        @StageRow("JPN", apr.JpnStatus, apr.Jpn, apr.JpnDate, apr.JpnComments)
+                        @StageRow("MC", apr.McStatus, apr.Mc, apr.McDate, apr.McComments)
+                        @StageRow("PL", apr.PlStatus, apr.Pl, apr.PlDate, apr.PlComments)
+                        @StageRow("PCMNG", apr.PcMngStatus, apr.PcMng, apr.PcMngDate, apr.PcMngComments)
+                        @StageRow("PCJPN", apr.PcJpnStatus, apr.PcJpn, apr.PcJpnDate, apr.PcJpnComments)
+                        @StageRow("FINMNG", apr.FinMngStatus, apr.FinMng, apr.FinMngDate, apr.FinMngComments)
+                        @StageRow("FINJPN", apr.FinJpnStatus, apr.FinJpn, apr.FinJpnDate, apr.FinJpnComments)
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+@functions {
+    string BadgeForUrgencia(Urgencia u)
+        => u == Urgencia.Critica ? "badge bg-danger"
+         : u == Urgencia.Alta ? "badge bg-warning text-dark"
+         : u == Urgencia.Media ? "badge bg-info text-dark"
+         : "badge bg-secondary";
+
+    string BadgeForEstado(RequestStatus s)
+        => s == RequestStatus.Nuevo ? "badge bg-primary"
+         : s == RequestStatus.EnProceso ? "badge bg-info text-dark"
+         : s == RequestStatus.PorModificar ? "badge bg-warning text-dark"
+         : s == RequestStatus.Rechazado ? "badge bg-danger"
+         : "badge bg-secondary";
+
+    IHtmlContent StageRow(string stage, ApprovalStatus? st, string? user, DateTime? when, string? comments)
+    {
+        var badge = st == ApprovalStatus.APPROVED ? "bg-success"
+                 : st == ApprovalStatus.REJECTED ? "bg-danger"
+                 : st == ApprovalStatus.MODIFY ? "bg-warning text-dark"
+                 : "bg-secondary";
+
+        var date = when.HasValue ? when.Value.ToString("yyyy-MM-dd HH:mm") : "-";
+        var who = string.IsNullOrWhiteSpace(user) ? "-" : user!;
+        var com = string.IsNullOrWhiteSpace(comments) ? "-" : comments!;
+
+        var html =
+            "<tr>" +
+            $"<td><span class='badge bg-light text-dark'>{stage}</span></td>" +
+            $"<td><span class='badge {badge}'>{(st.HasValue ? st.Value.ToString() : "PENDING")}</span></td>" +
+            $"<td>{WebUtility.HtmlEncode(who)}</td>" +
+            $"<td>{date}</td>" +
+            $"<td>{WebUtility.HtmlEncode(com)}</td>" +
+            "</tr>";
+
+        return new HtmlString(html);
+    }
+}
+
+@section Styles {
+    <style>
+        /* ----- Tabla con columnas sticky ----- */
+        .h-scroll {
+            overflow-x: auto;
+        }
+
+        .table-wide {
+            min-width: 1700px;
+        }
+
+            .table-wide th, .table-wide td {
+                white-space: nowrap;
+            }
+
+        .col-no {
+            min-width: 70px;
+        }
+
+        .col-numparte {
+            min-width: 160px;
+        }
+
+        .col-desc {
+            min-width: 320px;
+        }
+
+        .col-case {
+            min-width: 200px;
+        }
+
+        .col-codmov {
+            min-width: 120px;
+        }
+
+        .col-a, .col-d {
+            min-width: 120px;
+        }
+
+        .col-num {
+            min-width: 110px;
+            text-align: right;
+        }
+
+        .col-mon {
+            min-width: 100px;
+        }
+
+        .sticky-col, .sticky-col-2 {
+            position: sticky;
+            z-index: 1;
+            background: #fff;
+        }
+
+        .sticky-col {
+            left: 0;
+        }
+
+        .sticky-col-2 {
+            left: 70px;
+        }
+        /* igual al min-width de .col-no */
+        thead .sticky-col, thead .sticky-col-2 {
+            z-index: 2;
+            background: #f8f9fa;
+        }
+
+        /* Separador visual entre Actual y Destino */
+        .sep-col {
+            width: 8px;
+            border-left: 3px solid #2c5fa8 !important;
+            background: #f1f5ff;
+        }
+
+        /* ----- Stepper de aprobación ----- */
+        /* ===== Stepper compacto en una sola línea con scroll ===== */
+        .stepper-scroll {
+            position: relative;
+            overflow-x: auto;
+            padding: .75rem .25rem .25rem .25rem;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .stepper-row {
+            display: inline-flex; /* no envuelve */
+            gap: 2.25rem; /* espacio entre nodos */
+            position: relative;
+            white-space: nowrap;
+            min-height: 84px;
+            padding: 0 .25rem;
+        }
+
+        /* Rail de fondo + relleno */
+        .stepper-rail {
+            position: absolute;
+            left: 1.25rem;
+            right: 1.25rem;
+            top: 24px; /* centrado con los dots */
+            height: 4px;
+            background: #e6e9f0;
+            border-radius: 999px;
+        }
+
+        .stepper-rail-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(44,95,168,.9), rgba(44,95,168,.35));
+            transition: width .25s ease;
+        }
+
+        /* Nodo */
+        .stepper-node {
+            position: relative;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 110px;
+        }
+
+            .stepper-node .dot {
+                width: 28px;
+                height: 28px;
+                border-radius: 999px;
+                display: grid;
+                place-items: center;
+                background: #e5e7eb;
+                color: #334155;
+                border: 2px solid #fff;
+                box-shadow: 0 0 0 3px rgba(0,0,0,.06);
+                z-index: 1;
+            }
+
+            .stepper-node .label {
+                margin-top: .35rem;
+                font-weight: 800;
+                letter-spacing: .5px;
+            }
+
+            .stepper-node .meta {
+                line-height: 1.05;
+                margin-top: .15rem;
+                text-align: center;
+            }
+
+            /* Estados de los nodos */
+            .stepper-node.is-done .dot {
+                background: #22c55e;
+                color: #fff;
+            }
+
+            .stepper-node.is-rejected .dot {
+                background: #ef4444;
+                color: #fff;
+            }
+
+            .stepper-node.is-modify .dot {
+                background: #f59e0b;
+                color: #111827;
+            }
+
+            .stepper-node.is-pending .dot {
+                background: #e5e7eb;
+                color: #334155;
+            }
+
+            .stepper-node.is-current .dot {
+                background: #2c5fa8;
+                color: #fff;
+                box-shadow: 0 0 0 4px rgba(44,95,168,.22);
+            }
+
+        /* Leyenda */
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 999px;
+            display: inline-block;
+            margin-right: .4rem;
+            vertical-align: middle;
+        }
+
+            .legend-dot.done {
+                background: #22c55e;
+            }
+
+            .legend-dot.rejected {
+                background: #ef4444;
+            }
+
+            .legend-dot.modify {
+                background: #f59e0b;
+            }
+
+            .legend-dot.current {
+                background: #2c5fa8;
+            }
+
+            .legend-dot.pending {
+                background: #e5e7eb;
+                border: 1px solid #cbd5e1;
+            }
+
+    </style>
+}
+
+@section Scripts {
+    <script>
+        // Tooltips para dots/steps
+        const tEls = document.querySelectorAll('[data-bs-toggle="tooltip"], .approval-stepper .step[title]');
+        tEls.forEach(el => {
+          try { new bootstrap.Tooltip(el); } catch {}
+        });
+    </script>
 }

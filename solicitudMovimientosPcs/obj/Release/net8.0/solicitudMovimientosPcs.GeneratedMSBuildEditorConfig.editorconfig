@@ -96,10 +96,6 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGNGaW5hbFxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/dm45207/source/repos/solicitudMovimientosPcs/solicitudMovimientosPcs/Views/Requests/Crear.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVxdWVzdHNcQ3JlYXIuY3NodG1s
-build_metadata.AdditionalFiles.CssScope = 
-
 [C:/Users/dm45207/source/repos/solicitudMovimientosPcs/solicitudMovimientosPcs/Views/Requests/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVxdWVzdHNcQ3JlYXRlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
@@ -126,6 +122,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/dm45207/source/repos/solicitudMovimientosPcs/solicitudMovimientosPcs/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/dm45207/source/repos/solicitudMovimientosPcs/solicitudMovimientosPcs/Views/StageAccessAdmin/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3RhZ2VBY2Nlc3NBZG1pblxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/dm45207/source/repos/solicitudMovimientosPcs/solicitudMovimientosPcs/Views/_ViewImports.cshtml]

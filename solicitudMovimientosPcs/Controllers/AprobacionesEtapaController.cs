@@ -16,18 +16,21 @@ namespace solicitudMovimientosPcs.Controllers
     {
         private readonly ApplicationDbContext _db;
         private readonly IEmailService _email;
-        private readonly Dictionary<string, string> _destinos;
+        private readonly IReadOnlyDictionary<string, string> _destinos;
+        private readonly IStageAccessService _stageAccess;
 
         private static readonly string[] Flow = new[] { "MNG", "JPN", "MC", "PL", "PCMNG", "PCJPN", "FINMNG", "FINJPN" };
 
         public AprobacionesEtapaController(
         ApplicationDbContext db,
         IEmailService email,
-        Dictionary<string, string> destinos) 
+        IReadOnlyDictionary<string, string> destinos, 
+        IStageAccessService stageAccess) 
         {
             _db = db;
             _email = email;
-            _destinos = destinos; 
+            _destinos = destinos;
+            _stageAccess = stageAccess;
         }
 
 
@@ -42,26 +45,48 @@ namespace solicitudMovimientosPcs.Controllers
         private string CurrentUser() =>
             User.FindFirst("DisplayName")?.Value ?? User.Identity?.Name ?? string.Empty;
 
-        private string? ResolveEmail(string displayOrEmail)
+        private async Task<string?> ResolveEmailAsync(string displayOrEmail)
         {
             if (string.IsNullOrWhiteSpace(displayOrEmail)) return null;
-            // Si ya viene correo, lo usamos
             if (displayOrEmail.Contains("@")) return displayOrEmail.Trim();
 
-            // TODO: Cambia a tu lógica real (ej. consulta AD/tabla de usuarios)
-            // Mientras tanto, convención temporal:
-            // p.ej. "Juan Perez" -> "juan.perez@meax.mx"
-            var norm = displayOrEmail.Trim().ToLowerInvariant().Replace(' ', '.');
-            return $"{norm}@meax.mx";
+            // Buscar en dbo.users_ad por USERNAME o PC_LOGIN_ID
+            var email = await _db.UsersAd
+                .AsNoTracking()
+                .Where(u => u.Username == displayOrEmail || u.PcLoginId == displayOrEmail)
+                .Select(u => u.Email)
+                .FirstOrDefaultAsync();
+
+            if (!string.IsNullOrWhiteSpace(email))
+                return email;
+
+            // Fallback: nombre.apellido@meax.mx
+            var guess = displayOrEmail.Trim().ToLowerInvariant().Replace(' ', '.') + "@meax.mx";
+            return guess;
         }
+
+
+        private async Task<bool> GuardAsync(string st)
+        {
+            return await _stageAccess.HasAccessAsync(st, CurrentUser());
+        }
+
+
 
         // Notificar al solicitante
         private async Task NotifyAsync(PcMovimientosRequest req, string subject, string html)
         {
-            var to = ResolveEmail(req.Solicitante);
-            if (to == null) return;
-            try { await _email.SendAsync(to, subject, html); } catch { }
+            var to = await ResolveEmailAsync(req.Solicitante);
+            if (string.IsNullOrWhiteSpace(to)) return;
+            try
+            {
+                await _email.SendAsync(to, subject, html);
+            }
+            catch
+            {
+            }
         }
+
 
         // (Opcional) notificar también al siguiente aprobador de la cadena:
         private string[] NextStageRecipients(string stage, PcMovimientosAprobaciones a)
@@ -83,6 +108,7 @@ namespace solicitudMovimientosPcs.Controllers
         public async Task<IActionResult> Index(string stage)
         {
             if (!TryNormalizeStage(stage, out var st)) return NotFound();
+            if (!await GuardAsync(st)) return Forbid();
 
             IQueryable<PcMovimientosAprobaciones> q = _db.PcMovimientosAprobaciones
                 .Include(a => a.Solicitud)!.ThenInclude(r => r.Items);
@@ -119,6 +145,7 @@ namespace solicitudMovimientosPcs.Controllers
         public async Task<IActionResult> Details(string stage, int id)
         {
             if (!TryNormalizeStage(stage, out var st)) return NotFound();
+            if (!await GuardAsync(st)) return Forbid();
 
             var req = await _db.PcMovimientosRequests
                 .Include(r => r.Items)
@@ -136,9 +163,10 @@ namespace solicitudMovimientosPcs.Controllers
         // ======= APROBAR =======
         [HttpPost("APPROVED/{id:int}")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> APPROVED(string stage, int id, [FromForm] string? comentario)
+        public async Task<IActionResult> APPROVED(string stage, int id, [FromForm(Name = "comments")] string? comentario)
         {
             if (!TryNormalizeStage(stage, out var st)) return NotFound();
+            if (!await GuardAsync(st)) return Forbid();
 
             var apro = await _db.PcMovimientosAprobaciones
                 .Include(a => a.Solicitud)
@@ -149,6 +177,8 @@ namespace solicitudMovimientosPcs.Controllers
             if (!PrevApproved(apro, st)) { TempData["Warn"] = "La solicitud no ha completado las etapas previas."; return RedirectToAction(nameof(Index), new { stage = st }); }
 
             SetApproval(apro, st, CurrentUser(), ApprovalStatus.APPROVED, DateTime.Now);
+
+            SetStageComment(apro, st, comentario ?? string.Empty);
 
             if (st == "MNG" && apro.Solicitud != null && apro.Solicitud.RequestStatus == RequestStatus.Nuevo)
                 apro.Solicitud.RequestStatus = RequestStatus.EnProceso;
@@ -161,10 +191,14 @@ namespace solicitudMovimientosPcs.Controllers
                 var req = apro.Solicitud;
                 var subj = $"Solicitud #{req.Id} aprobada en {st}";
                 var body = $@"<p>Hola {req.Solicitante},</p>
-                          <p>Tu solicitud <strong>#{req.Id}</strong> fue <strong>aprobada</strong> en <strong>{st}</strong>.</p>
-                          {(string.IsNullOrWhiteSpace(comentario) ? "" : $"<p><em>Comentario:</em> {System.Net.WebUtility.HtmlEncode(comentario)}</p>")}";
-                await _email.SendAsync(ResolveEmail(req.Solicitante) ?? "", subj, body);
+                  <p>Tu solicitud <strong>#{req.Id}</strong> fue <strong>aprobada</strong> en <strong>{st}</strong>.</p>
+                  {(string.IsNullOrWhiteSpace(comentario) ? "" : $"<p><em>Comentario:</em> {System.Net.WebUtility.HtmlEncode(comentario)}</p>")}";
+
+                var to = await ResolveEmailAsync(req.Solicitante);
+                if (!string.IsNullOrWhiteSpace(to))
+                    await _email.SendAsync(to, subj, body);
             }
+
 
             // <<< NUEVO: Notificar al siguiente aprobador, si existe mapeo >>>
             var stSiguiente = NextStage(st);
@@ -182,27 +216,28 @@ namespace solicitudMovimientosPcs.Controllers
         // ======= RECHAZAR =======
         [HttpPost("REJECTED/{id:int}")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> REJECTED(string stage, int id, [FromForm] string? comentario)
+        public async Task<IActionResult> REJECTED(string stage, int id, [FromForm(Name = "comments")] string? comentario)
         {
             if (!TryNormalizeStage(stage, out var st)) return NotFound();
+            if (!await GuardAsync(st)) return Forbid();
 
             var apro = await _db.PcMovimientosAprobaciones
                 .Include(a => a.Solicitud)
                 .FirstOrDefaultAsync(a => a.RequestId == id);
             if (apro == null) return NotFound();
 
-            if (!IsPending(apro, st))
+            if (!IsPending(apro, st)) { TempData["Warn"] = "Esta solicitud ya fue atendida en esta etapa."; return RedirectToAction(nameof(Index), new { stage = st }); }
+            if (!PrevApproved(apro, st)) { TempData["Warn"] = "La solicitud no ha completado las etapas previas."; return RedirectToAction(nameof(Index), new { stage = st }); }
+
+            if (string.IsNullOrWhiteSpace(comentario))
             {
-                TempData["Warn"] = "Esta solicitud ya fue atendida en esta etapa.";
-                return RedirectToAction(nameof(Index), new { stage = st });
-            }
-            if (!PrevApproved(apro, st))
-            {
-                TempData["Warn"] = "La solicitud no ha completado las etapas previas.";
-                return RedirectToAction(nameof(Index), new { stage = st });
+                TempData["Err"] = "Debes especificar el motivo del rechazo.";
+                return RedirectToAction(nameof(Details), new { stage = st, id });
             }
 
             SetApproval(apro, st, CurrentUser(), ApprovalStatus.REJECTED, DateTime.Now);
+
+            SetStageComment(apro, st, comentario!.Trim());
 
             if (apro.Solicitud != null)
                 apro.Solicitud.RequestStatus = RequestStatus.Rechazado;
@@ -226,10 +261,13 @@ namespace solicitudMovimientosPcs.Controllers
         }
 
         // ======= MODIFICAR =======
-        [HttpPost]
+        [HttpPost("MODIFY/{id:int}")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Modify(int id, string stage, [FromForm] string? comentario)
+        public async Task<IActionResult> Modify(int id, string stage, [FromForm(Name = "comments")] string? comentario)
         {
+            if (!TryNormalizeStage(stage, out var st)) return NotFound();
+            if (!await GuardAsync(st)) return Forbid();
+
             var user = User.FindFirst("DisplayName")?.Value ?? User.Identity?.Name ?? "user";
             var a = await _db.PcMovimientosAprobaciones
                 .Include(x => x.Solicitud)
@@ -237,8 +275,16 @@ namespace solicitudMovimientosPcs.Controllers
 
             if (a == null) return NotFound();
 
-            bool ok = SetStageStatus(a, stage, ApprovalStatus.MODIFY, user, DateTime.Now);
+            if (string.IsNullOrWhiteSpace(comentario))
+            {
+                TempData["Err"] = "Debes indicar por qué se envía a modificación.";
+                return RedirectToAction(nameof(Details), new { stage = st, id });
+            }
+
+            var ok = SetStageStatus(a, st, ApprovalStatus.MODIFY, CurrentUser(), DateTime.Now);
             if (!ok) return BadRequest("Etapa inválida.");
+
+            SetStageComment(a, st, comentario!.Trim());
 
             if (a.Solicitud != null)
                 a.Solicitud.RequestStatus = RequestStatus.PorModificar;

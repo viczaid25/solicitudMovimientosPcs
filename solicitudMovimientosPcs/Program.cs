@@ -1,47 +1,41 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using solicitudMovimientosPcs.Data;
-using solicitudMovimientosPcs.Services;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Authorization;
+using solicitudMovimientosPcs.Data;
+using solicitudMovimientosPcs.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+// DB
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
 
+// Excepciones EF en dev
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-var destinos = builder.Configuration
-    .GetSection("Aprobaciones:Destinatarios")
-    .Get<Dictionary<string, string>>() ?? new Dictionary<string, string>();
+// Caching (para StageAccessService)
+builder.Services.AddMemoryCache();
 
-builder.Services.AddSingleton<IReadOnlyDictionary<string, string>>(destinos);
+// Servicios propios
+builder.Services.AddScoped<IStageAccessService, StageAccessService>();
 
-// Configurar Identity manualmente
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
-{
-    options.SignIn.RequireConfirmedAccount = false; // Desactiva la confirmación de cuenta
-})
-.AddEntityFrameworkStores<ApplicationDbContext>()
-.AddDefaultTokenProviders();
-
-// Registrar el servicio de Active Directory
-builder.Services.AddSingleton(new ActiveDirectoryService("ad.meax.mx")); // Reemplaza "ad.meax.mx" con tu dominio de AD
-
-// Configurar el servicio de correo electrónico
+// Email
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 
-// Registrar el diccionario de destinatarios de aprobaciones
-builder.Services.AddSingleton(builder.Configuration.GetSection("Aprobaciones:Destinatarios").Get<Dictionary<string, string>>() ?? new());
+// AD (si lo usas)
+builder.Services.AddSingleton(new ActiveDirectoryService("ad.meax.mx"));
 
+// Destinatarios por etapa (UNA sola vez y como IReadOnlyDictionary)
+var destinos =
+    builder.Configuration.GetSection("Aprobaciones:Destinatarios")
+        .Get<Dictionary<string, string>>() ?? new Dictionary<string, string>();
+builder.Services.AddSingleton<IReadOnlyDictionary<string, string>>(destinos);
 
-// Configurar autenticación basada en cookies
+// Autenticación por cookies
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -50,14 +44,14 @@ builder.Services.AddAuthentication(options =>
 })
 .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
 {
-    options.Cookie.Name = "PCS.Auth"; // Nombre único para evitar conflictos
+    options.Cookie.Name = "PCS.Auth";
     options.LoginPath = "/Account/Login";
     options.AccessDeniedPath = "/Account/AccessDenied";
     options.ExpireTimeSpan = TimeSpan.FromDays(30);
     options.SlidingExpiration = true;
 });
 
-
+// MVC + autorización global
 builder.Services.AddControllersWithViews(options =>
 {
     var policy = new AuthorizationPolicyBuilder()
@@ -68,7 +62,7 @@ builder.Services.AddControllersWithViews(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -84,24 +78,21 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseAuthentication(); // Asegúrate de que UseAuthentication esté antes de UseAuthorization
-
+app.UseAuthentication();
 app.Use(async (context, next) =>
 {
-    Debug.WriteLine($"Autenticado: {context.User.Identity.IsAuthenticated}");
-    Debug.WriteLine($"Usuario: {context.User.Identity.Name}");
+    Debug.WriteLine($"Autenticado: {context.User.Identity?.IsAuthenticated}");
+    Debug.WriteLine($"Usuario: {context.User.Identity?.Name}");
     await next();
 });
-
-
 app.UseAuthorization();
 
-// Ruta por defecto a /Account/Login
+// Ruta por defecto
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Account}/{action=Login}/{id?}");
 
-// Redirigir raíz a Login (extra, por si acceden a "/")
+// Redirigir raíz a Login
 app.MapGet("/", ctx =>
 {
     ctx.Response.Redirect("/Account/Login");

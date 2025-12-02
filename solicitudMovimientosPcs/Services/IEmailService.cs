@@ -4,7 +4,7 @@ namespace solicitudMovimientosPcs.Services
 {
     public interface IEmailService
     {
-        Task SendAsync(string to, string subject, string htmlBody);
-        Task SendAsync(string[] to, string subject, string htmlBody);
+        Task SendAsync(string to, string subject, string html);
+        Task SendAsync(IEnumerable<string> to, string subject, string html);
     }
 }

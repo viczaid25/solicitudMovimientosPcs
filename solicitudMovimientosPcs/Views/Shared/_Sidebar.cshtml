@@ -1,4 +1,6 @@
-﻿@{
+﻿@inject solicitudMovimientosPcs.Services.IStageAccessService StageAccess
+
+@{
     string ctrl = (ViewContext.RouteData.Values["controller"] as string) ?? "";
     string action = (ViewContext.RouteData.Values["action"] as string) ?? "";
 
@@ -19,6 +21,30 @@
                  && (a == null || action.Equals(a, StringComparison.OrdinalIgnoreCase));
         return m ? "active" : "";
     }
+
+    // ==== Permisos por etapa ====
+    var isAuth = User?.Identity?.IsAuthenticated ?? false;
+    var display = isAuth ? (User.FindFirst("DisplayName")?.Value ?? User.Identity?.Name ?? "") : "";
+
+    bool canMNG=false, canJPN=false, canMC=false, canPL=false, canPCMNG=false, canPCJPN=false, canFINMNG=false, canFINJPN=false, canAdmin=false;
+
+    if (isAuth)
+    {
+        canMNG    = await StageAccess.HasAccessAsync("MNG", display);
+        canJPN    = await StageAccess.HasAccessAsync("JPN", display);
+        canMC     = await StageAccess.HasAccessAsync("MC", display);
+        canPL     = await StageAccess.HasAccessAsync("PL", display);
+        canPCMNG  = await StageAccess.HasAccessAsync("PCMNG", display);
+        canPCJPN  = await StageAccess.HasAccessAsync("PCJPN", display);
+        canFINMNG = await StageAccess.HasAccessAsync("FINMNG", display);
+        canFINJPN = await StageAccess.HasAccessAsync("FINJPN", display);
+
+        // Admin por rol o por etapa "ADMIN" (ajústalo si prefieres otro criterio)
+        canAdmin = User.IsInRole("Admin") || await StageAccess.HasAccessAsync("ADMIN", display);
+    }
+
+    bool anyApprovals = canMNG || canJPN || canMC || canPL || canPCMNG || canPCJPN || canFINMNG || canFINJPN;
+    bool canPC = canPCMNG || canPCJPN;
 }
 
 <aside class="sidebar" id="sidebar">
@@ -45,60 +71,73 @@
                     <ul class="nav flex-column ms-3">
                         <li class="nav-item"><a class="nav-link @Active("Requests","Create")" asp-controller="Requests" asp-action="Create"><i class="fas fa-plus-circle me-2"></i>Nueva</a></li>
                         <li class="nav-item"><a class="nav-link @Active("Requests","My")" asp-controller="Requests" asp-action="My"><i class="fas fa-list me-2"></i>Mis solicitudes</a></li>
-                        
                     </ul>
                 </div>
             </li>
 
-            <!-- Aprobaciones -->
-            <li class="nav-section text-white-50 small text-uppercase px-2 mt-2">Aprobaciones</li>
-            <li class="nav-item">
-                <a class="nav-link section-toggle d-flex align-items-center @(inAprobaciones ? "" : "collapsed")"
-                   data-bs-toggle="collapse" href="#menuAprobaciones" role="button"
-                   aria-expanded="@(inAprobaciones.ToString().ToLower())" aria-controls="menuAprobaciones">
-                    <i class="fas fa-check-double me-2"></i> Bandejas
-                    <span class="ms-auto chev fas fa-chevron-right"></span>
-                </a>
-                <div id="menuAprobaciones" class="collapse @Show("Aprobaciones")" data-bs-parent="#sidebarAccordion">
-                    <ul class="nav flex-column ms-3">
-                        <li class="nav-item"><a class="nav-link @Active("AprobacionesEtapa")" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="MNG">MNG</a></li>
-                        <li class="nav-item"><a class="nav-link @Active("AprobacionesEtapa")" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="JPN">JPN</a></li>
-                        <li class="nav-item"><a class="nav-link @Active("AprobacionesEtapa")" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="MC">MC</a></li>
-                        <li class="nav-item"><a class="nav-link @Active("AprobacionesEtapa")" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="PL">PL</a></li>
-                        <li class="nav-item"><a class="nav-link @Active("AprobacionesEtapa")" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="PCMNG">PC MNG</a></li>
-                        <li class="nav-item"><a class="nav-link @Active("AprobacionesEtapa")" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="PCJPN">PC JPN</a></li>
-                        <li class="nav-item"><a class="nav-link @Active("AprobacionesEtapa")" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="FINMNG">FIN MNG</a></li>
-                        <li class="nav-item"><a class="nav-link @Active("AprobacionesEtapa")" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="FINJPN">FIN JPN</a></li>
-                    </ul>
-                </div>
-            </li>
+            <!-- Aprobaciones (solo si tiene alguna bandeja asignada) -->
+            @if (anyApprovals)
+            {
+                <li class="nav-section text-white-50 small text-uppercase px-2 mt-2">Aprobaciones</li>
+                <li class="nav-item">
+                    <a class="nav-link section-toggle d-flex align-items-center @(inAprobaciones ? "" : "collapsed")"
+                       data-bs-toggle="collapse" href="#menuAprobaciones" role="button"
+                       aria-expanded="@(inAprobaciones.ToString().ToLower())" aria-controls="menuAprobaciones">
+                        <i class="fas fa-check-double me-2"></i> Bandejas
+                        <span class="ms-auto chev fas fa-chevron-right"></span>
+                    </a>
+                    <div id="menuAprobaciones" class="collapse @Show("Aprobaciones")" data-bs-parent="#sidebarAccordion">
+                        <ul class="nav flex-column ms-3">
+                            @if (canMNG)    { <li class="nav-item"><a class="nav-link @Active("AprobacionesEtapa")" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="MNG">MNG</a></li> }
+                            @if (canJPN)    { <li class="nav-item"><a class="nav-link @Active("AprobacionesEtapa")" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="JPN">JPN</a></li> }
+                            @if (canMC)     { <li class="nav-item"><a class="nav-link @Active("AprobacionesEtapa")" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="MC">MC</a></li> }
+                            @if (canPL)     { <li class="nav-item"><a class="nav-link @Active("AprobacionesEtapa")" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="PL">PL</a></li> }
+                            @if (canPCMNG)  { <li class="nav-item"><a class="nav-link @Active("AprobacionesEtapa")" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="PCMNG">PC MNG</a></li> }
+                            @if (canPCJPN)  { <li class="nav-item"><a class="nav-link @Active("AprobacionesEtapa")" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="PCJPN">PC JPN</a></li> }
+                            @if (canFINMNG) { <li class="nav-item"><a class="nav-link @Active("AprobacionesEtapa")" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="FINMNG">FIN MNG</a></li> }
+                            @if (canFINJPN) { <li class="nav-item"><a class="nav-link @Active("AprobacionesEtapa")" asp-controller="AprobacionesEtapa" asp-action="Index" asp-route-stage="FINJPN">FIN JPN</a></li> }
+                        </ul>
+                    </div>
+                </li>
+            }
 
-            <!-- PC Finalización -->
-            <li class="nav-item mt-2">
-                <a class="nav-link @Active("PcFinal","Index")" asp-controller="PcFinal" asp-action="Index">
-                    <i class="fas fa-clipboard-check me-2"></i> PC - Finalización
-                </a>
-            </li>
+            <!-- PC Finalización (solo equipo PC) -->
+            @if (canPC)
+            {
+                <li class="nav-item mt-2">
+                    <a class="nav-link @Active("PcFinal","Index")" asp-controller="PcFinal" asp-action="Index">
+                        <i class="fas fa-clipboard-check me-2"></i> PC - Finalización
+                    </a>
+                </li>
+            }
 
-            <!-- Catálogos -->
-            <li class="nav-section text-white-50 small text-uppercase px-2 mt-2">Catálogos</li>
-            <li class="nav-item">
-                <a class="nav-link section-toggle d-flex align-items-center @(inCatalogos ? "" : "collapsed")"
-                   data-bs-toggle="collapse" href="#menuCatalogos" role="button"
-                   aria-expanded="@(inCatalogos.ToString().ToLower())" aria-controls="menuCatalogos">
-                    <i class="fas fa-boxes me-2"></i> Catálogos
-                    <span class="ms-auto chev fas fa-chevron-right"></span>
-                </a>
-                <div id="menuCatalogos" class="collapse @Show("Catalogos")" data-bs-parent="#sidebarAccordion">
-                    <ul class="nav flex-column ms-3">
-                        <li class="nav-item"><a class="nav-link @Active("Catalogos","Clases")" asp-controller="Catalogos" asp-action="Clases"><i class="fas fa-tags me-2"></i>Clases</a></li>
-                        <li class="nav-item"><a class="nav-link @Active("Catalogos","Lineas")" asp-controller="Catalogos" asp-action="Lineas"><i class="fas fa-code-branch me-2"></i>Líneas/Áreas</a></li>
-                        <li class="nav-item"><a class="nav-link @Active("Catalogos","Codigos")" asp-controller="Catalogos" asp-action="Codigos"><i class="fas fa-qrcode me-2"></i>Códigos</a></li>
-                        <li class="nav-item"><a class="nav-link @Active("Catalogos","Movimientos")" asp-controller="Catalogos" asp-action="Movimientos"><i class="fas fa-exchange-alt me-2"></i>Cod. Movimiento</a></li>
-                        <li class="nav-item"><a class="nav-link @Active("Catalogos","Ubicaciones")" asp-controller="Catalogos" asp-action="Ubicaciones"><i class="fas fa-map-marker-alt me-2"></i>Ubicaciones</a></li>
-                    </ul>
-                </div>
-            </li>
+            <!-- Catálogos y Administración (solo admin) -->
+            @if (canAdmin)
+            {
+                <li class="nav-section text-white-50 small text-uppercase px-2 mt-2">Catálogos</li>
+                <li class="nav-item">
+                    <a class="nav-link section-toggle d-flex align-items-center @(inCatalogos ? "" : "collapsed")"
+                       data-bs-toggle="collapse" href="#menuCatalogos" role="button"
+                       aria-expanded="@(inCatalogos.ToString().ToLower())" aria-controls="menuCatalogos">
+                        <i class="fas fa-boxes me-2"></i> Catálogos
+                        <span class="ms-auto chev fas fa-chevron-right"></span>
+                    </a>
+                    <div id="menuCatalogos" class="collapse @Show("Catalogos")" data-bs-parent="#sidebarAccordion">
+                        <ul class="nav flex-column ms-3">
+                            <li class="nav-item"><a class="nav-link @Active("Catalogos","Clases")" asp-controller="Catalogos" asp-action="Clases"><i class="fas fa-tags me-2"></i>Clases</a></li>
+                            <li class="nav-item"><a class="nav-link @Active("Catalogos","Lineas")" asp-controller="Catalogos" asp-action="Lineas"><i class="fas fa-code-branch me-2"></i>Líneas/Áreas</a></li>
+                            <li class="nav-item"><a class="nav-link @Active("Catalogos","Codigos")" asp-controller="Catalogos" asp-action="Codigos"><i class="fas fa-qrcode me-2"></i>Códigos</a></li>
+                            <li class="nav-item"><a class="nav-link @Active("Catalogos","Movimientos")" asp-controller="Catalogos" asp-action="Movimientos"><i class="fas fa-exchange-alt me-2"></i>Cod. Movimiento</a></li>
+                            <li class="nav-item"><a class="nav-link @Active("Catalogos","Ubicaciones")" asp-controller="Catalogos" asp-action="Ubicaciones"><i class="fas fa-map-marker-alt me-2"></i>Ubicaciones</a></li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="~/Admin/StageAccess">
+                                    <i class="fas fa-user-shield me-1"></i> Permisos por etapa
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+            }
 
         </ul>
     </nav>

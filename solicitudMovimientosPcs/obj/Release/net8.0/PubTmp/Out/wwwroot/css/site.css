@@ -23,6 +23,7 @@
     --focus: 0 0 0 .25rem rgba(44,95,168,.3);
     --bs-primary-rgb: 44,95,168; /* #2C5FA8 */
     --bs-primary: #2c5fa8;
+    --col-no-w: 90px;
 }
 
 /* =================
@@ -379,7 +380,7 @@ h1, h2, h3, h4, h5, h6 {
    Tablas
    ================= */
 .table {
-    --bs-table-bg: transparent;
+    --bs-table-bg: #fff;
     border-collapse: separate;
     border-spacing: 0;
 }
@@ -458,11 +459,7 @@ h1, h2, h3, h4, h5, h6 {
         color: #fff !important;
     }
 
-/* Asegura el color primario global */
-:root {
-    --bs-primary: #2c5fa8;
-    --bs-primary-rgb: 44,95,168;
-}
+
 
 .card-header.bg-primary {
     background-color: var(--bs-primary) !important;
@@ -487,3 +484,269 @@ h1, h2, h3, h4, h5, h6 {
         transition: none !important
     }
 }
+
+/* Que TODAS las celdas tengan fondo sólido (no transparente) acorde al tema */
+.table:not(.table-dark) > :not(caption) > * > * {
+    background-color: var(--bs-table-bg, #fff);
+}
+
+/* Encabezados pegados encima del body */
+thead .sticky-col,
+thead .sticky-col-2 {
+    z-index: 2;
+    background-color: var(--bs-table-bg, #f8f9fa);
+}
+
+/* Respetar zebra-striping en filas impares */
+.table-striped > tbody > tr:nth-of-type(odd) > .sticky-col,
+.table-striped > tbody > tr:nth-of-type(odd) > .sticky-col-2 {
+    background-color: var(--bs-table-striped-bg, #f8f9fa);
+}
+
+/* Respetar hover */
+.table-hover > tbody > tr:hover > .sticky-col,
+.table-hover > tbody > tr:hover > .sticky-col-2 {
+    background-color: var(--bs-table-hover-bg, #f2f2f2);
+}
+
+/* Asegura fondos de separador también */
+.sep-col {
+    background-color: var(--bs-table-bg, #fff);
+}
+
+
+/* ancho de la 1ª col (No.) */
+
+.h-scroll {
+    overflow-x: auto;
+}
+
+/* La tabla puede crecer y forzar scroll si hace falta */
+.table-wide {
+    table-layout: auto !important; /* NO fixed */
+    width: max-content; /* ancho según contenido */
+    min-width: 1700px; /* ajusta según tus columnas */
+}
+
+/* Anchos mínimos para que no se amontone */
+.col-no {
+    width: var(--col-no-w);
+    min-width: var(--col-no-w);
+    max-width: var(--col-no-w);
+}
+
+.col-numparte {
+    min-width: 160px;
+}
+
+.col-desc {
+    min-width: 320px;
+}
+
+.col-case {
+    min-width: 160px;
+}
+
+.col-codmov {
+    min-width: 120px;
+}
+
+.col-a, .col-d {
+    min-width: 140px;
+}
+
+.col-num {
+    min-width: 110px;
+    text-align: right;
+}
+
+.col-mon {
+    min-width: 100px;
+}
+
+/* Sticky de las 2 primeras columnas */
+.sticky-col, .sticky-col-2 {
+    position: sticky;
+    z-index: 5; /* por encima de celdas normales */
+    background-color: #fff !important; /* sin transparencia */
+    background-clip: padding-box;
+    box-shadow: 2px 0 0 rgba(0,0,0,.06); /* línea/sombra sutil derecha */
+}
+
+thead .sticky-col, thead .sticky-col-2 {
+    z-index: 7;
+    background-color: #f8f9fa !important; /* header sólido */
+}
+
+.sticky-col {
+    left: 0;
+}
+
+.sticky-col-2 {
+    left: var(--col-no-w);
+}
+/* EXACTO al ancho de la 1ª */
+
+/* Evitar saltos que compactan */
+.table-wide th, .table-wide td {
+    white-space: nowrap;
+}
+
+/* ====== Tabla de Items/Aprobaciones: sticky + scroll ====== */
+
+/* 1) Contenedor con scroll horizontal */
+.h-scroll {
+    overflow-x: auto;
+}
+
+/* 2) La tabla puede crecer y forzar scroll si hace falta */
+.table-wide {
+    table-layout: auto !important;
+    width: max-content;
+    min-width: 1700px; /* ajusta si necesitas más/menos ancho base */
+}
+
+/* 3) Anchos por columna */
+.col-no {
+    width: var(--col-no-w);
+    min-width: var(--col-no-w);
+    max-width: var(--col-no-w);
+}
+
+.col-numparte {
+    min-width: 160px;
+}
+
+.col-desc {
+    min-width: 320px;
+}
+
+.col-case {
+    min-width: 160px;
+}
+
+.col-codmov {
+    min-width: 120px;
+}
+
+.col-a, .col-d {
+    min-width: 140px;
+}
+
+.col-num {
+    min-width: 110px;
+    text-align: right;
+}
+
+.col-mon {
+    min-width: 100px;
+}
+
+/* 4) Columnas pegadas */
+.sticky-col, .sticky-col-2 {
+    position: sticky;
+    z-index: 5;
+    background-color: #fff !important;
+    background-clip: padding-box;
+    box-shadow: 2px 0 0 rgba(0,0,0,.06);
+}
+
+thead .sticky-col, thead .sticky-col-2 {
+    z-index: 7;
+    background-color: #f8f9fa !important;
+}
+
+.sticky-col {
+    left: 0;
+}
+
+.sticky-col-2 {
+    left: var(--col-no-w);
+}
+/* EXACTO al ancho de la 1ª */
+
+/* 5) Zebra/hover coherente en celdas sticky */
+.table-striped > tbody > tr:nth-of-type(odd) > .sticky-col,
+.table-striped > tbody > tr:nth-of-type(odd) > .sticky-col-2 {
+    background-color: var(--bs-table-striped-bg, #f8f9fa);
+}
+
+.table-hover > tbody > tr:hover > .sticky-col,
+.table-hover > tbody > tr:hover > .sticky-col-2 {
+    background-color: var(--bs-table-hover-bg, #f2f2f2);
+}
+
+/* 6) Evitar saltos de línea que compacten */
+.table-wide th, .table-wide td {
+    white-space: nowrap;
+}
+
+/* Texto blanco y en negritas para el bloque de totales en headers primarios */
+.card-header.custom-header-primary .header-totals,
+.card-header.bg-primary .header-totals {
+    color: #fff !important;
+    font-weight: 800 !important;
+}
+
+    .card-header.custom-header-primary .header-totals *,
+    .card-header.bg-primary .header-totals * {
+        color: #fff !important;
+        font-weight: 800 !important;
+    }
+
+    /* Variante monocroma (blanca) de la pill de Diferencia cuando está en el header */
+    .card-header.custom-header-primary .header-totals .diff-pill,
+    .card-header.bg-primary .header-totals .diff-pill {
+        background: transparent; /* sin fondo para que contraste con el header */
+        color: #fff !important;
+        border-color: rgba(255,255,255,.35);
+    }
+
+/* Botón de alto contraste dentro de .card-header (bg-primary) */
+.card-header .header-cta {
+    color: #fff !important;
+    border: 1px solid rgba(255,255,255,.7) !important;
+    background: rgba(255,255,255,.08);
+    backdrop-filter: saturate(140%) blur(2px);
+    letter-spacing: .2px;
+}
+
+    .card-header .header-cta:hover {
+        background: rgba(255,255,255,.16);
+        border-color: #fff !important;
+        box-shadow: 0 6px 14px rgba(0,0,0,.15);
+        transform: translateY(-1px);
+    }
+
+    .card-header .header-cta:active {
+        transform: translateY(0);
+    }
+
+    .card-header .header-cta:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 .2rem rgba(255,255,255,.35);
+    }
+
+/* Badges/chips legibles dentro de .custom-header-primary */
+.card-header.custom-header-primary .badge-on-primary {
+    background: #f8f9fa !important;
+    color: #212529 !important;
+    border: 1px solid rgba(0,0,0,.06);
+}
+
+    .card-header.custom-header-primary .badge-on-primary .fa {
+        color: inherit !important;
+    }
+
+/* Asegura que los badges con text-dark sigan oscuros dentro del header */
+.card-header.custom-header-primary .badge.text-dark {
+    color: #212529 !important;
+}
+
+/* Por si usas bg-light directamente */
+.card-header.custom-header-primary .badge.bg-light {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+}
+
+
