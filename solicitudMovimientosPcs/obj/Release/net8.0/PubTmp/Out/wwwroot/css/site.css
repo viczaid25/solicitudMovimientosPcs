@@ -749,4 +749,160 @@ thead .sticky-col, thead .sticky-col-2 {
     color: #212529 !important;
 }
 
+.approval-stepper {
+    display: flex;
+    gap: 1.25rem;
+    overflow-x: auto;
+    padding: .25rem .25rem .5rem;
+}
+
+    .approval-stepper .step {
+        position: relative;
+        flex: 0 0 auto;
+        min-width: 130px;
+        text-align: center;
+    }
+
+        .approval-stepper .step:not(:first-child)::before {
+            content: "";
+            position: absolute;
+            top: 16px;
+            left: -.625rem; /* conecta con anterior */
+            width: calc(1.25rem + 24px);
+            height: 4px;
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        .approval-stepper .step.connector-fill:not(:first-child)::before {
+            background: var(--color-primary-2);
+        }
+
+.step-dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    margin: 0 auto 6px;
+    display: grid;
+    place-items: center;
+    font-size: .8rem;
+    border: 2px solid var(--border);
+    background: #fff;
+    color: #64748b;
+}
+
+.step-label {
+    font-weight: 700;
+    font-size: .9rem;
+}
+
+.step-meta {
+    line-height: 1.15;
+}
+
+/* Estados */
+.step.is-done .step-dot {
+    background: #22c55e;
+    border-color: #22c55e;
+    color: #fff;
+}
+
+.step.is-current .step-dot {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+    box-shadow: 0 0 0 .2rem rgba(44,95,168,.15);
+}
+
+.step.is-modify .step-dot {
+    background: #fde68a;
+    border-color: #f59e0b;
+    color: #111827;
+}
+
+.step.is-rejected .step-dot {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: #fff;
+}
+
+.step.is-pending .step-dot {
+    background: #e5e7eb;
+    border-color: #cbd5e1;
+    color: #64748b;
+}
+
+/* Leyenda */
+.legend-dot {
+    position: relative;
+    padding-left: 22px;
+    margin-right: 12px;
+}
+
+    .legend-dot::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        transform: translateY(-50%);
+        width: 14px;
+        height: 14px;
+        border-radius: 999px;
+        border: 2px solid var(--border);
+        background: #fff;
+    }
+
+    .legend-dot.done::before {
+        background: #22c55e;
+        border-color: #22c55e;
+    }
+
+    .legend-dot.current::before {
+        background: var(--color-primary);
+        border-color: var(--color-primary);
+    }
+
+    .legend-dot.modify::before {
+        background: #fde68a;
+        border-color: #f59e0b;
+    }
+
+    .legend-dot.rejected::before {
+        background: #ef4444;
+        border-color: #ef4444;
+    }
+
+    .legend-dot.pending::before {
+        background: #e5e7eb;
+        border-color: #cbd5e1;
+    }
+
+/* Tablas que deben llenar todo el ancho (evitar hueco derecho) */
+.table-fill {
+    width: 100% !important;
+    table-layout: fixed; /* sincroniza thead/tbody */
+}
+
+    .table-fill th, .table-fill td {
+        white-space: nowrap; /* no romper etiquetas/badges/botón */
+    }
+
+        /* Columna de Items (penúltima) a la derecha */
+        .table-fill th.items-col,
+        .table-fill td.items-col {
+            width: 90px;
+            text-align: right;
+        }
+
+        /* Columna de acciones (última) fija */
+        .table-fill th.actions-col,
+        .table-fill td.actions-col {
+            width: 120px;
+            text-align: right;
+        }
+
+/* Por si el card redondeado dejaba ver fondo: */
+.card:has(.table-fill) {
+    overflow: hidden;
+}
 

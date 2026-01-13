@@ -1,17 +1,27 @@
-﻿using System.Security.Claims;
+﻿using System.IO;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using solicitudMovimientosPcs.Data;
 using solicitudMovimientosPcs.Models;
 using solicitudMovimientosPcs.Models.ViewModels;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Hosting;
+
 
 namespace solicitudMovimientosPcs.Controllers
 {
     public class RequestsController : Controller
     {
         private readonly ApplicationDbContext _db;
-        public RequestsController(ApplicationDbContext db) => _db = db;
+        private readonly IWebHostEnvironment _env;
+
+        public RequestsController(ApplicationDbContext db, IWebHostEnvironment env)
+        {
+            _db = db;
+            _env = env;
+        }
 
         private async Task LoadItemCombosAsync()
         {
@@ -89,7 +99,8 @@ namespace solicitudMovimientosPcs.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
             [Bind("Departamento,Linea,Comentarios,Urgencia,Items")] PcMovimientosRequest form,
-            [FromForm] string[]? TiposMovimiento)
+            [FromForm] string[]? TiposMovimiento,
+            List<IFormFile>? Evidencias)
         {
             form.Fecha = DateTime.Now; // fecha + hora
 
@@ -120,7 +131,7 @@ namespace solicitudMovimientosPcs.Controllers
                 return View(form);
             }
 
-            // Cálculos de items (resumen)
+            // Cálculos de items (regla: Total = |Diferencia| * CostoU, y CantidadD = CantidadA - Diferencia)
             for (int i = 0; i < form.Items.Count; i++)
             {
                 var it = form.Items[i];
@@ -128,12 +139,27 @@ namespace solicitudMovimientosPcs.Controllers
                 it.IdSolicitud = 0;
                 if (it.Numero <= 0) it.Numero = i + 1;
 
-                var a = it.CantidadA ?? 0m;
-                var d = it.CantidadD ?? 0m;
-                it.Diferencia = d - a;
+                var a = it.CantidadA ?? 0m;           // cantidad actual
+                var costo = it.CostoU ?? 0m;
 
-                var qtyBase = d != 0 ? d : a;
-                it.Total = (it.CostoU ?? 0m) * qtyBase;
+                // Si Diferencia viene nula, la inferimos con CantidadD; si no, usamos la proporcionada
+                decimal diff;
+                if (it.Diferencia.HasValue)
+                {
+                    diff = it.Diferencia.Value;       // positiva = baja, negativa = alta
+                }
+                else
+                {
+                    var d = it.CantidadD ?? a;
+                    diff = a - d;                      // positiva = baja, negativa = alta
+                    it.Diferencia = diff;
+                }
+
+                // Asegurar consistencia: CantidadD = CantidadA - Diferencia
+                it.CantidadD = a - diff;
+
+                // Total monetario siempre positivo (magnitud del movimiento)
+                it.Total = decimal.Round(Math.Abs(diff) * costo, 2, MidpointRounding.AwayFromZero);
             }
 
             // Reglas de aprobación:
@@ -165,12 +191,12 @@ namespace solicitudMovimientosPcs.Controllers
                     PcMngStatus = ApprovalStatus.PENDING,
                     PcJpnStatus = ApprovalStatus.PENDING,
 
-                    // MC: pendiente sólo si aplica; si no, auto-aprobado
+                    // MC
                     McStatus = requireMc ? ApprovalStatus.PENDING : ApprovalStatus.APPROVED,
                     Mc = requireMc ? null : sys,
                     McDate = requireMc ? null : now,
 
-                    // FIN: pendiente sólo si requireFin; si no, auto-aprobado
+                    // FIN
                     FinMngStatus = requireFin ? ApprovalStatus.PENDING : ApprovalStatus.APPROVED,
                     FinJpnStatus = requireFin ? ApprovalStatus.PENDING : ApprovalStatus.APPROVED,
                     FinMng = requireFin ? null : sys,
@@ -181,6 +207,9 @@ namespace solicitudMovimientosPcs.Controllers
 
                 _db.PcMovimientosAprobaciones.Add(aprob);
                 await _db.SaveChangesAsync();
+
+                await SaveEvidenceFilesAsync(form.Id, Evidencias);
+
 
                 await tx.CommitAsync();
                 return RedirectToAction(nameof(Details), new { id = form.Id });
@@ -194,6 +223,7 @@ namespace solicitudMovimientosPcs.Controllers
             }
         }
 
+
         // GET: /Requests/Details/5
         [HttpGet]
         public async Task<IActionResult> Details(int id)
@@ -204,6 +234,8 @@ namespace solicitudMovimientosPcs.Controllers
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             if (request == null) return NotFound();
+            ViewBag.Evidence = GetEvidenceList(id);
+
             return View(request);
         }
 
@@ -256,7 +288,11 @@ namespace solicitudMovimientosPcs.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, PcMovimientosRequest model, [FromForm] string[]? TiposMovimiento)
+        public async Task<IActionResult> Edit(
+            int id,
+            PcMovimientosRequest model,
+            [FromForm] string[]? TiposMovimiento,
+            List<IFormFile>? Evidencias)
         {
             var display = User.FindFirst("DisplayName")?.Value ?? User.Identity?.Name ?? "";
 
@@ -271,7 +307,7 @@ namespace solicitudMovimientosPcs.Controllers
                 || req.RequestStatus != RequestStatus.PorModificar)
                 return Forbid();
 
-            // Normaliza selección (CSV) para persistir
+            // Normaliza selección (CSV)
             var tiposSet = (TiposMovimiento ?? Array.Empty<string>())
                .Select(t => t?.Trim().ToUpperInvariant())
                .Where(t => t is "FDO" or "PDO" or "WDO" or "MLO" or "ESTATUS")
@@ -285,23 +321,57 @@ namespace solicitudMovimientosPcs.Controllers
                 return View("Create", model);
             }
 
-            // Actualiza cabecera permitida
+            // === Cálculos por item ===
+            if (model.Items is null || model.Items.Count == 0)
+            {
+                ModelState.AddModelError("", "Debes agregar al menos un item.");
+                await LoadItemCombosAsync();
+                return View("Create", model);
+            }
+
+            for (int i = 0; i < model.Items.Count; i++)
+            {
+                var it = model.Items[i];
+
+                // Asegura numeración
+                if (it.Numero <= 0) it.Numero = i + 1;
+
+                var a = it.CantidadA ?? 0m;
+                var dDest = it.CantidadD ?? a;
+                var costo = it.CostoU ?? 0m;
+
+                // Si Diferencia es nula, la inferimos con A y D
+                decimal diff = it.Diferencia ?? (a - dDest);
+                it.Diferencia = diff;
+
+                // Consistenciar destino: D = A - Diferencia
+                it.CantidadD = a - diff;
+
+                // Total monetario por magnitud del movimiento
+                it.Total = decimal.Round(Math.Abs(diff) * costo, 2, MidpointRounding.AwayFromZero);
+            }
+
+            // === Actualiza cabecera permitida ===
             req.Departamento = model.Departamento;
             req.Linea = model.Linea;
             req.Comentarios = model.Comentarios;
             req.Urgencia = model.Urgencia;
             req.PcTiposMovimiento = model.PcTiposMovimiento;
 
-            // Reemplaza items
+            // === Reemplaza items (reinsertando limpios) ===
             _db.PcMovimientosItems.RemoveRange(req.Items);
-            req.Items = model.Items ?? new List<PcMovimientosItem>();
-            foreach (var it in req.Items) it.IdSolicitud = req.Id;
+            req.Items = model.Items;
 
-            // Reglas de aprobación
+            foreach (var it in req.Items)
+            {
+                it.Id = 0;                // reinsertar como nuevos
+                it.IdSolicitud = req.Id;  // FK
+            }
+
+            // === Reglas de aprobación ===
             bool requireFin = tiposSet.Any(t => t is "FDO" or "PDO" or "WDO");
-            bool requireMc = RequiresMc(model.Items);
+            bool requireMc = RequiresMc(req.Items);
 
-            // Resetea aprobaciones según reglas (una sola llamada)
             if (req.Aprobaciones != null)
             {
                 ResetApprovals(req.Aprobaciones, requireFin: requireFin, requireMc: requireMc);
@@ -311,9 +381,11 @@ namespace solicitudMovimientosPcs.Controllers
             req.RequestStatus = RequestStatus.Nuevo;
 
             await _db.SaveChangesAsync();
+            await SaveEvidenceFilesAsync(req.Id, Evidencias);
             TempData["Msg"] = "Solicitud actualizada y reenviada al flujo de aprobación.";
             return RedirectToAction(nameof(My));
         }
+
 
         private void ResetApprovals(PcMovimientosAprobaciones a, bool requireFin, bool requireMc)
         {
@@ -358,5 +430,152 @@ namespace solicitudMovimientosPcs.Controllers
                 a.FinJpnDate = now;
             }
         }
+
+        private static readonly HashSet<string> AllowedExts = new(StringComparer.OrdinalIgnoreCase)
+        { ".pdf",".jpg",".jpeg",".png",".heic",".xlsx",".xls",".csv",".txt",".doc",".docx",".zip" };
+
+        private const long MaxSize = 20L * 1024 * 1024; // 20 MB
+
+        private async Task SaveEvidenceFilesAsync(int requestId, IEnumerable<IFormFile>? files)
+        {
+            if (files == null) return;
+
+            var wwwroot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var folder = Path.Combine(wwwroot, "uploads", "solicitudes", requestId.ToString());
+            Directory.CreateDirectory(folder);
+
+            foreach (var f in files.Where(x => x != null && x.Length > 0))
+            {
+                var ext = Path.GetExtension(f.FileName);
+                if (!AllowedExts.Contains(ext) || f.Length > MaxSize)
+                    continue; // saltar inválidos
+
+                var fileName = $"{Guid.NewGuid():N}{ext}";
+                var path = Path.Combine(folder, fileName);
+                using var stream = System.IO.File.Create(path);
+                await f.CopyToAsync(stream);
+            }
+        }
+
+        private List<EvidenceItem> GetEvidenceList(int requestId)
+        {
+            var list = new List<EvidenceItem>();
+            var wwwroot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var folder = Path.Combine(wwwroot, "uploads", "solicitudes", requestId.ToString());
+
+            if (!Directory.Exists(folder))
+                return list;
+
+            foreach (var p in Directory.GetFiles(folder))
+            {
+                var fi = new FileInfo(p);
+                list.Add(new EvidenceItem
+                {
+                    FileName = fi.Name,
+                    Url = $"/uploads/solicitudes/{requestId}/{fi.Name}",
+                    Ext = fi.Extension.TrimStart('.').ToLowerInvariant(),
+                    Size = fi.Length
+                });
+            }
+            return list;
+        }
+
+        // GET: /Requests/All
+        [HttpGet]
+        public async Task<IActionResult> All(
+            string? q,
+            RequestStatus? status,
+            string? departamento,
+            string? linea,
+            DateTime? desde,
+            DateTime? hasta
+        )
+        {
+            // 1) Valores efectivos de filtros (por defecto: Completado)
+            var effectiveStatus = status ?? RequestStatus.Completado;
+
+            // 2) Query base
+            var query = _db.PcMovimientosRequests
+                .AsNoTracking()
+                .Include(r => r.Items)
+                .Include(r => r.Aprobaciones)
+                .AsQueryable();
+
+            // 3) Filtros
+            query = query.Where(r => r.RequestStatus == effectiveStatus);
+
+            if (!string.IsNullOrWhiteSpace(departamento))
+                query = query.Where(r => r.Departamento == departamento);
+
+            if (!string.IsNullOrWhiteSpace(linea))
+                query = query.Where(r => r.Linea == linea);
+
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var ql = q.Trim().ToLower();
+                query = query.Where(r =>
+                    (r.Solicitante ?? "").ToLower().Contains(ql) ||
+                    (r.Comentarios ?? "").ToLower().Contains(ql) ||
+                    (r.PcFolio ?? "").ToLower().Contains(ql)
+                );
+            }
+
+            if (desde.HasValue)
+                query = query.Where(r => r.Fecha >= desde.Value.Date);
+
+            if (hasta.HasValue)
+            {
+                var to = hasta.Value.Date.AddDays(1); // fin del día
+                query = query.Where(r => r.Fecha < to);
+            }
+
+            var list = await query
+                .OrderByDescending(r => r.Fecha)
+                .ToListAsync();
+
+            // 4) Combos SIN C# en atributos de <option>
+            ViewBag.StatusItems = Enum.GetValues(typeof(RequestStatus))
+                .Cast<RequestStatus>()
+                .Select(s => new SelectListItem
+                {
+                    Value = s.ToString(),
+                    Text = s.ToString(),
+                    Selected = s == effectiveStatus
+                })
+                .ToList();
+
+            ViewBag.DepItems = new[] { "MELX", "SAL", "IT", "PD", "LGL", "PRC", "TOP", "HR", "FIN", "QC", "PC", "FC" }
+                .Select(d => new SelectListItem
+                {
+                    Value = d,
+                    Text = d,
+                    Selected = d == (departamento ?? "")
+                })
+                .ToList();
+
+            var lineasSel = await _db.PcMovimientosCodigoLineas
+                .OrderBy(x => x.AreaCode)
+                .Select(x => new SelectListItem
+                {
+                    Value = x.AreaCode,
+                    Text = x.AreaCode + " - " + x.AreaName
+                })
+                .ToListAsync();
+
+            foreach (var li in lineasSel)
+                li.Selected = li.Value == (linea ?? "");
+
+            ViewBag.Lineas = lineasSel;
+
+            // 5) Valores para mantener filtros en inputs
+            ViewBag.Q = q ?? "";
+            ViewBag.Desde = desde?.ToString("yyyy-MM-dd") ?? "";
+            ViewBag.Hasta = hasta?.ToString("yyyy-MM-dd") ?? "";
+
+            return View("All", list);
+        }
+
+
+
     }
 }

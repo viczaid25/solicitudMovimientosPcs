@@ -2,7 +2,7 @@
 @using Microsoft.AspNetCore.Mvc.Rendering
 
 @{
-    ViewData["Title"] = "Nueva Solicitud";
+    ViewData["Title"] = (Model?.Id > 0 ? "Editar Solicitud" : "Nueva Solicitud");
 
     var clases = ViewBag.Clases as IEnumerable<SelectListItem>;
     var ubicaciones = ViewBag.Ubicaciones as IEnumerable<SelectListItem>;
@@ -14,35 +14,40 @@
     var solicitanteActual = !string.IsNullOrWhiteSpace(Model?.Solicitante)
         ? Model.Solicitante
         : (User.FindFirst("DisplayName")?.Value ?? User.Identity?.Name ?? "");
+
+    bool isEdit = Model?.Id > 0;
+    string titleIcon = isEdit ? "fa-pen-to-square" : "fa-plus-circle";
 }
 
 <div class="card shadow-sm">
     <div class="card-header bg-primary text-white">
-        <h4 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Nueva Solicitud</h4>
+        <h4 class="mb-0"><i class="fas @titleIcon me-2"></i>@(isEdit ? "Editar Solicitud" : "Nueva Solicitud")</h4>
     </div>
     <div class="card-body">
 
         <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
 
-        <form asp-action="Create" method="post" id="frmCreate" autocomplete="off">
+        <form asp-action="@(isEdit ? "Edit" : "Create")"
+              asp-route-id="@(Model?.Id)"
+              method="post" id="frmCreate" autocomplete="off"
+              enctype="multipart/form-data">
             @Html.AntiForgeryToken()
 
             <div class="row g-3">
-                <!-- FECHA (requerido): deshabilitado visual + hidden para enviar -->
+                <!-- FECHA -->
                 <div class="col-md-3">
                     <label class="form-label req">Fecha</label>
-                    <!-- Solo visual, sin postear -->
                     <input class="form-control" value="@Model.Fecha.ToString("yyyy-MM-dd HH:mm")" readonly />
                 </div>
 
-                <!-- SOLICITANTE: solo lectura + hidden -->
+                <!-- SOLICITANTE -->
                 <div class="col-md-3">
                     <label class="form-label req">Solicitante</label>
                     <input class="form-control" value="@solicitanteActual" readonly />
                     <input type="hidden" name="Solicitante" value="@solicitanteActual" />
                 </div>
 
-                <!-- DEPARTAMENTO (requerido): lista fija -->
+                <!-- DEPARTAMENTO -->
                 <div class="col-md-3">
                     <label class="form-label req">Departamento</label>
                     <select asp-for="Departamento" class="form-select" required>
@@ -55,7 +60,7 @@
                     <span asp-validation-for="Departamento" class="text-danger"></span>
                 </div>
 
-                <!-- LÍNEA (requerido) -->
+                <!-- LÍNEA -->
                 <div class="col-md-3">
                     <label class="form-label req">Línea</label>
                     <select asp-for="Linea" class="form-select" asp-items="lineas" required>
@@ -70,7 +75,7 @@
                     <span asp-validation-for="Comentarios" class="text-danger"></span>
                 </div>
 
-                <!-- URGENCIA (requerido) -->
+                <!-- URGENCIA -->
                 <div class="col-md-3">
                     <label class="form-label req">Urgencia</label>
                     <select asp-for="Urgencia" class="form-select" asp-items="Html.GetEnumSelectList<Urgencia>()" required></select>
@@ -84,7 +89,6 @@
                     <label class="form-label fw-semibold">Tipo de Movimiento (selecciona los que apliquen)</label>
                     <div class="d-flex flex-wrap gap-3">
                         @{
-                            // Pre-chequeo si regresas a la vista por validación fallida (leyendo CSV guardado en Model)
                             var tiposCsv = Model?.PcTiposMovimiento ?? "";
                             bool chk(string v) => tiposCsv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                             .Any(x => string.Equals(x, v, StringComparison.OrdinalIgnoreCase));
@@ -114,10 +118,26 @@
                         Si seleccionas <strong>FDO</strong>, <strong>PDO</strong> o <strong>WDO</strong>, la solicitud <u>pasará</u> por aprobación de Finanzas.
                         (Ejemplo: si eliges <strong>ESTATUS</strong> y <strong>FDO</strong>, <em>sí</em> pasa por Finanzas).
                     </div>
+                </div>
 
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <i class="fa fa-paperclip me-2"></i> Evidencias
+                    </div>
+                    <div class="card-body">
+                        <input type="file"
+                               id="Evidencias"
+                               name="Evidencias"
+                               class="form-control"
+                               multiple
+                               accept=".pdf,.jpg,.jpeg,.png,.heic,.xlsx,.xls,.csv,.txt,.doc,.docx,.zip" />
+                        <div class="form-text">
+                            Hasta 10 archivos, máximo 20&nbsp;MB c/u.
+                        </div>
+                        <ul id="eviList" class="small mt-2 mb-0"></ul>
+                    </div>
                 </div>
             </div>
-
 
             <hr class="my-4" />
 
@@ -202,23 +222,20 @@
                             <th style="min-width:70px">No.</th>
                             <th style="min-width:140px" class="req">Núm. Parte</th>
                             <th style="min-width:220px" class="req">Descripción</th>
-                            <!-- CodMov más compacto -->
                             <th style="min-width:170px" class="req">CodMov</th>
-                            <!-- CASE más ancho -->
                             <th style="min-width:200px" class="req">Case</th>
                             <th style="min-width:170px" class="req">Ubic A (libre)</th>
                             <th style="min-width:140px" class="req">Estatus A</th>
                             <th style="min-width:140px" class="req">Clase A</th>
                             <th style="min-width:120px" class="req">Cant A</th>
 
-                            <!-- Separador visual -->
+                            <!-- Separador -->
                             <th class="sep-col"></th>
 
                             <!-- G2 (Solicitado) -->
                             <th style="min-width:140px">Estatus D</th>
                             <th style="min-width:160px">Ubic D</th>
                             <th style="min-width:140px">Clase D</th>
-                            <!-- Cant D con decimales -->
                             <th style="min-width:120px">Cant D</th>
 
                             <!-- G3 -->
@@ -267,8 +284,9 @@
                                     </select>
                                 </td>
                                 <td>
+                                    <!-- CAMBIO: permite decimales -->
                                     <input class="form-control qtyA no-spinners" asp-for="Items[@i].CantidadA"
-                                           type="number" step="1" inputmode="decimal" required />
+                                           type="number" step="0.01" min="0" inputmode="decimal" required />
                                 </td>
 
                                 <!-- Separador -->
@@ -291,7 +309,6 @@
                                     </select>
                                 </td>
                                 <td>
-                                    <!-- Cant D con decimales y readonly (se calcula) -->
                                     <input class="form-control qtyD no-spinners"
                                            asp-for="Items[@i].CantidadD"
                                            type="number" step="0.01" inputmode="decimal"
@@ -300,7 +317,6 @@
 
                                 <!-- G3 -->
                                 <td>
-                                    <!-- Diferencia editable (entera o decimal, deja 0.01 por flexibilidad) -->
                                     <input class="form-control diff"
                                            asp-for="Items[@i].Diferencia"
                                            type="number" step="0.01" />
@@ -338,7 +354,6 @@
 
 @section Styles {
     <style>
-        /* Asterisco rojo para campos requeridos */
         .req::after {
             content: " *";
             color: #dc3545;
@@ -349,12 +364,10 @@
             white-space: nowrap;
         }
 
-        /* Un poco más ancha para el nuevo layout */
         .table-wide {
             min-width: 2650px;
         }
 
-        /* Separador vertical entre "Actual" y "Solicitado" */
         .sep-col {
             width: 8px;
             border-left: 3px solid #2c5fa8 !important;
@@ -365,7 +378,6 @@
             background: #f6f9ff;
         }
 
-        /* Ocultar spinners de number si los hubiera */
         .no-spinners::-webkit-outer-spin-button,
         .no-spinners::-webkit-inner-spin-button {
             -webkit-appearance: none;
@@ -376,7 +388,6 @@
             -moz-appearance: textfield;
         }
 
-        /* Mayúsculas visuales en inputs de texto */
         .to-upper {
             text-transform: uppercase;
         }
@@ -387,185 +398,275 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         (function () {
-            const form = document.getElementById('frmCreate');
+          const form = document.getElementById('frmCreate');
 
-            // Evitar submit con Enter (excepto textarea/botones)
-            form.addEventListener('keydown', function (e) {
-                if (e.key === 'Enter') {
-                    const tag = e.target.tagName.toLowerCase();
-                    if (tag !== 'textarea' && tag !== 'button') e.preventDefault();
-                }
-            });
+          // Evitar submit con Enter (excepto textarea/botón)
+          form.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+              const tag = e.target.tagName.toLowerCase();
+              if (tag !== 'textarea' && tag !== 'button') e.preventDefault();
+            }
+          });
 
-            let idx = @Model.Items.Count;
+          let idx = @Model.Items.Count;
 
-            const tpl = {
-                clases: document.getElementById('tpl-clases').innerHTML,
-                ubics:  document.getElementById('tpl-ubicaciones').innerHTML,
-                cods:   document.getElementById('tpl-codmovs').innerHTML,
-                est:    document.getElementById('tpl-estatus').innerHTML,
-                mon:    document.getElementById('tpl-monedas').innerHTML
+          // Plantillas para selects (ya están en el DOM como <select id="tpl-...">)
+          const tpl = {
+            clases: document.getElementById('tpl-clases').innerHTML,
+            ubics:  document.getElementById('tpl-ubicaciones').innerHTML,
+            cods:   document.getElementById('tpl-codmovs').innerHTML,
+            est:    document.getElementById('tpl-estatus').innerHTML,
+            mon:    document.getElementById('tpl-monedas').innerHTML
+          };
+
+          const tableBody = document.querySelector('#itemsTable tbody');
+
+          function toNum(v){ return parseFloat((v || '0').toString().replace(',', '.')) || 0 }
+
+          function setInvalid(el, invalid){
+            if(!el) return;
+            el.classList.toggle('is-invalid', !!invalid);
+          }
+
+          // Reglas: D = A − Dif  |  Total = |Dif| × CostoU
+          function recalcRow(tr){
+            const qtyAEl = tr.querySelector('.qtyA');
+            const diffEl = tr.querySelector('.diff');
+            const qtyDEl = tr.querySelector('.qtyD');
+            const costEl = tr.querySelector('.costU');
+            const totEl  = tr.querySelector('.total');
+
+            const qtyA = toNum(qtyAEl?.value);
+            const diff = toNum(diffEl?.value);
+            const cost = toNum(costEl?.value);
+
+            const qtyD = qtyA - diff; // regla principal
+            if (qtyDEl) qtyDEl.value = Number.isFinite(qtyD) ? qtyD.toFixed(2) : '0.00';
+
+            const negative = qtyD < 0;
+            setInvalid(qtyDEl, negative);
+            setInvalid(diffEl, negative); // opcional: también marca diferencia
+
+            const total = Math.abs(diff) * cost;
+            if (totEl) totEl.value = Number.isFinite(total) ? total.toFixed(2) : '0.00';
+          }
+
+          function nextNumero(prefill){
+            if (prefill && prefill.Numero){
+              const n = parseInt(prefill.Numero, 10);
+              return (isNaN(n) ? 0 : n) + 1;
+            }
+            const last = tableBody.querySelector('tr:last-child input[name$=".Numero"]');
+            const ln = last ? parseInt(last.value, 10) : 0;
+            return (isNaN(ln) ? 0 : ln) + 1;
+          }
+
+          function addRow(prefill) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td><input class="form-control" name="Items[${idx}].Numero" type="text" value="${nextNumero(prefill)}" readonly /></td>
+              <td><input class="form-control to-upper" name="Items[${idx}].NumParte" required /></td>
+              <td><input class="form-control to-upper" name="Items[${idx}].Descripcion" required /></td>
+              <td><select class="form-select" name="Items[${idx}].CodMov" required>${tpl.cods}</select></td>
+              <td><input class="form-control to-upper" name="Items[${idx}].Case" required /></td>
+              <td><input class="form-control to-upper" name="Items[${idx}].UbicacionA" required /></td>
+              <td><select class="form-select" name="Items[${idx}].EstatusA" required>${tpl.est}</select></td>
+              <td><select class="form-select" name="Items[${idx}].ClaseA" required>${tpl.clases}</select></td>
+              <td><input class="form-control qtyA no-spinners" name="Items[${idx}].CantidadA" type="number" step="0.01" min="0" inputmode="decimal" required /></td>
+
+              <td class="sep-col"></td>
+
+              <td><select class="form-select" name="Items[${idx}].EstatusD">${tpl.est}</select></td>
+              <td><select class="form-select" name="Items[${idx}].UbicacionD">${tpl.ubics}</select></td>
+              <td><select class="form-select" name="Items[${idx}].ClaseD">${tpl.clases}</select></td>
+              <td><input class="form-control qtyD no-spinners" name="Items[${idx}].CantidadD" type="number" step="0.01" inputmode="decimal" readonly /></td>
+
+              <td><input class="form-control diff"  name="Items[${idx}].Diferencia" type="number" step="0.01" /></td>
+
+              <td><select class="form-select" name="Items[${idx}].Moneda">${tpl.mon}</select></td>
+              <td><input class="form-control costU" name="Items[${idx}].CostoU" type="number" step="0.01" /></td>
+              <td><input class="form-control total" name="Items[${idx}].Total" type="number" step="0.01" readonly /></td>
+
+              <td class="text-center">
+                <button type="button" class="btn btn-sm btn-outline-danger btn-del" title="Eliminar fila">
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+              </td>
+            `;
+            tableBody.appendChild(tr);
+
+                  if (prefill) {
+                    // helpers para prellenar SIN backticks
+                    const setVal = (field, value) => {
+                      const sel = '[name="Items[' + idx + '].' + field + '"]';
+                      const el = tr.querySelector(sel);
+                      if (el) el.value = (value ?? '');
+                    };
+                    const setSel = (field, value) => {
+                      const sel = 'select[name="Items[' + idx + '].' + field + '"]';
+                      const el = tr.querySelector(sel);
+                      if (el) el.value = (value ?? '');
+                    };
+
+                    setVal('NumParte',    prefill.NumParte);
+                    setVal('Descripcion', prefill.Descripcion);
+                    setSel('CodMov',      prefill.CodMov);
+                    setVal('Case',        prefill.Case);
+                    setVal('UbicacionA',  prefill.UbicacionA);
+                    setSel('EstatusA',    prefill.EstatusA);
+                    setSel('ClaseA',      prefill.ClaseA);
+                    setVal('CantidadA',   prefill.CantidadA);
+
+                    setSel('EstatusD',    prefill.EstatusD);
+                    setSel('UbicacionD',  prefill.UbicacionD);
+                    setSel('ClaseD',      prefill.ClaseD);
+                    setVal('CantidadD',   prefill.CantidadD);
+
+                    setVal('Diferencia',  prefill.Diferencia);
+                    setSel('Moneda',      prefill.Moneda);
+                    setVal('CostoU',      prefill.CostoU);
+                    setVal('Total',       prefill.Total);
+            }
+
+            recalcRow(tr);
+            idx++;
+            return tr;
+          }
+
+          function getRowData(tr) {
+          const val = (n) => {
+            const el = tr.querySelector('[name$="].' + n + '"]');
+            return el ? el.value : '';
+          };
+          return {
+            Numero:     val('Numero'),
+            NumParte:   val('NumParte'),
+            Descripcion:val('Descripcion'),
+            CodMov:     val('CodMov'),
+            Case:       val('Case'),
+            UbicacionA: val('UbicacionA'),
+            EstatusA:   val('EstatusA'),
+            ClaseA:     val('ClaseA'),
+            CantidadA:  val('CantidadA'),
+            EstatusD:   val('EstatusD'),
+            UbicacionD: val('UbicacionD'),
+            ClaseD:     val('ClaseD'),
+            CantidadD:  val('CantidadD'),
+            Diferencia: val('Diferencia'),
+            Moneda:     val('Moneda'),
+            CostoU:     val('CostoU'),
+            Total:      val('Total')
+          };
+        }
+
+          // Recalcular ante cambios en A, Dif o Costo U
+          tableBody.addEventListener('input', function(e){
+            if (e.target.matches('.qtyA, .diff, .costU')) {
+              const tr = e.target.closest('tr');
+              recalcRow(tr);
+            }
+            // Uppercase visual en inputs de texto
+            if (e.target.tagName === 'INPUT' && e.target.type === 'text') {
+              e.target.value = (e.target.value || '').toUpperCase();
+            }
+          });
+
+          // Eliminar fila
+          tableBody.addEventListener('click', function(e){
+            if (e.target.closest('.btn-del')) {
+              const tr = e.target.closest('tr');
+              if (!tr) return;
+              tr.remove();
+            }
+          });
+
+          // Agregar/duplicar fila
+          document.getElementById('addItem')?.addEventListener('click', function () { addRow(); });
+          document.getElementById('dupLast')?.addEventListener('click', function () {
+            const last = tableBody.querySelector('tr:last-child');
+            if (!last) { addRow(); return; }
+            const data = getRowData(last);
+            addRow(data);
+          });
+
+          // Inicial: recalcular y poner en mayúsculas
+          document.querySelectorAll('#itemsTable tbody tr').forEach(tr => {
+            recalcRow(tr);
+            tr.querySelectorAll('input[type="text"]').forEach(inp => inp.value = (inp.value || '').toUpperCase());
+          });
+
+          // --- Normalización decimales para jQuery Validate (acepta 12,34) ---
+          if (window.jQuery && $.validator && $.validator.methods && $.validator.methods.number) {
+            const _origNumber = $.validator.methods.number;
+            $.validator.methods.number = function (value, element) {
+              if (typeof value === 'string') value = value.replace(',', '.');
+              return _origNumber.call(this, value, element);
             };
+          }
 
-            const tableBody = document.querySelector('#itemsTable tbody');
-
-            function toNum(v){ return parseFloat((v || '0').toString().replace(',', '.')) || 0 }
-
-            function recalcRow(tr){
-              const qtyA  = toNum(tr.querySelector('.qtyA')?.value);
-              const diff  = toNum(tr.querySelector('.diff')?.value);
-              const cost  = toNum(tr.querySelector('.costU')?.value);
-
-              // Regla: CantA - Diferencia = CantD
-              const qtyD = qtyA - diff;
-
-              // Cant D con decimales (no truncar)
-              const qtyDInput = tr.querySelector('.qtyD');
-              if (qtyDInput) qtyDInput.value = Number.isFinite(qtyD) ? qtyD.toFixed(2) : '0.00';
-
-              // Total basado en CantD
-              const total = (Number.isFinite(qtyD) ? qtyD : 0) * cost;
-              const totalInput = tr.querySelector('.total');
-              if (totalInput) totalInput.value = Number.isFinite(total) ? total.toFixed(2) : '0.00';
-            }
-
-            function nextNumero(prefill){
-                if (prefill && prefill.Numero){
-                    const n = parseInt(prefill.Numero, 10);
-                    return (isNaN(n) ? 0 : n) + 1;
-                }
-                const last = document.querySelector('#itemsTable tbody tr:last-child input[name$=".Numero"]');
-                const ln = last ? parseInt(last.value, 10) : 0;
-                return (isNaN(ln) ? 0 : ln) + 1;
-            }
-
-            function addRow(prefill) {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><input class="form-control" name="Items[${idx}].Numero" type="text" value="${nextNumero(prefill)}" readonly /></td>
-                    <td><input class="form-control to-upper" name="Items[${idx}].NumParte" required /></td>
-                    <td><input class="form-control to-upper" name="Items[${idx}].Descripcion" required /></td>
-                    <td><select class="form-select" name="Items[${idx}].CodMov" required>${tpl.cods}</select></td>
-                    <td><input class="form-control to-upper" name="Items[${idx}].Case" required /></td>
-                    <td><input class="form-control to-upper" name="Items[${idx}].UbicacionA" required /></td>
-                    <td><select class="form-select" name="Items[${idx}].EstatusA" required>${tpl.est}</select></td>
-                    <td><select class="form-select" name="Items[${idx}].ClaseA" required>${tpl.clases}</select></td>
-                    <td><input class="form-control qtyA no-spinners" name="Items[${idx}].CantidadA" type="number" step="1" inputmode="decimal" required /></td>
-
-                    <td class="sep-col"></td>
-
-                    <td><select class="form-select" name="Items[${idx}].EstatusD">${tpl.est}</select></td>
-                    <td><select class="form-select" name="Items[${idx}].UbicacionD">${tpl.ubics}</select></td>
-                    <td><select class="form-select" name="Items[${idx}].ClaseD">${tpl.clases}</select></td>
-                    <td><input class="form-control qtyD no-spinners" name="Items[${idx}].CantidadD" type="number" step="0.01" inputmode="decimal" readonly /></td>
-
-                    <td><input class="form-control diff"  name="Items[${idx}].Diferencia" type="number" step="0.01" /></td>
-
-                    <td><select class="form-select" name="Items[${idx}].Moneda">${tpl.mon}</select></td>
-                    <td><input class="form-control costU" name="Items[${idx}].CostoU" type="number" step="0.01" /></td>
-                    <td><input class="form-control total" name="Items[${idx}].Total" type="number" step="0.01" readonly /></td>
-
-                    <td class="text-center">
-                        <button type="button" class="btn btn-sm btn-outline-danger btn-del" title="Eliminar fila">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </td>
-                `;
-                tableBody.appendChild(tr);
-
-                if (prefill) {
-                    setVal(tr, 'NumParte',    prefill.NumParte);
-                    setVal(tr, 'Descripcion', prefill.Descripcion);
-                    setSel(tr, 'CodMov',      prefill.CodMov);
-                    setVal(tr, 'Case',        prefill.Case);
-                    setVal(tr, 'UbicacionA',  prefill.UbicacionA);
-                    setSel(tr, 'EstatusA',    prefill.EstatusA);
-                    setSel(tr, 'ClaseA',      prefill.ClaseA);
-                    setVal(tr, 'CantidadA',   prefill.CantidadA);
-
-                    setSel(tr, 'EstatusD',    prefill.EstatusD);
-                    setSel(tr, 'UbicacionD',  prefill.UbicacionD);
-                    setSel(tr, 'ClaseD',      prefill.ClaseD);
-                    setVal(tr, 'CantidadD',   prefill.CantidadD);
-
-                    setVal(tr, 'Diferencia',  prefill.Diferencia);
-                    setSel(tr, 'Moneda',      prefill.Moneda);
-                    setVal(tr, 'CostoU',      prefill.CostoU);
-                    setVal(tr, 'Total',       prefill.Total);
-                }
-
-                recalcRow(tr);
-                idx++;
-                return tr;
-            }
-
-            function setVal(tr, field, value) {
-                const el = tr.querySelector(`[name="Items[${idx}].${field}"]`);
-                if (el) el.value = value ?? '';
-            }
-            function setSel(tr, field, value) {
-                const el = tr.querySelector(`select[name="Items[${idx}].${field}"]`);
-                if (el) el.value = value ?? '';
-            }
-
-            function getRowData(tr) {
-                const val = n => tr.querySelector(`[name$="].${n}"]`)?.value ?? '';
-                return {
-                    Numero:     val('Numero'),
-                    NumParte:   val('NumParte'),
-                    Descripcion:val('Descripcion'),
-                    CodMov:     val('CodMov'),
-                    Case:       val('Case'),
-                    UbicacionA: val('UbicacionA'),
-                    EstatusA:   val('EstatusA'),
-                    ClaseA:     val('ClaseA'),
-                    CantidadA:  val('CantidadA'),
-                    EstatusD:   val('EstatusD'),
-                    UbicacionD: val('UbicacionD'),
-                    ClaseD:     val('ClaseD'),
-                    CantidadD:  val('CantidadD'),
-                    Diferencia: val('Diferencia'),
-                    Moneda:     val('Moneda'),
-                    CostoU:     val('CostoU'),
-                    Total:      val('Total')
-                };
-            }
-
-            // Recalcular ante cambios en CantA, Diferencia o Costo U
-            tableBody.addEventListener('input', function(e){
-              if (e.target.matches('.qtyA, .diff, .costU')) {
-                const tr = e.target.closest('tr');
-                recalcRow(tr);
-              }
-              // Uppercase visual en inputs de texto
-              if (e.target.tagName === 'INPUT' && e.target.type === 'text') {
-                e.target.value = (e.target.value || '').toUpperCase();
-              }
+          // Antes de enviar: recalc total y D en todas las filas, bloquear si D<0, normalizar coma->punto
+          form.addEventListener('submit', function (e) {
+            let invalid = false;
+            document.querySelectorAll('#itemsTable tbody tr').forEach(function(tr){
+              recalcRow(tr);
+              const qd = toNum(tr.querySelector('.qtyD')?.value);
+              if (qd < 0) invalid = true;
             });
-
-            // Eliminar fila
-            tableBody.addEventListener('click', function(e){
-                if (e.target.closest('.btn-del')) {
-                    const tr = e.target.closest('tr');
-                    if (!tr) return;
-                    tr.remove();
-                }
+            if (invalid) {
+              e.preventDefault();
+              alert('Hay filas con Cant D negativa. Ajusta la Diferencia para que D = A − Dif no sea negativa.');
+              return;
+            }
+            document.querySelectorAll('.qtyA, .qtyD, .diff, .costU, .total').forEach(function (el) {
+              if (typeof el.value === 'string') el.value = el.value.replace(',', '.');
             });
-
-            // Agregar/duplicar fila
-            document.getElementById('addItem').addEventListener('click', function () { addRow(); });
-            document.getElementById('dupLast').addEventListener('click', function () {
-                const last = tableBody.querySelector('tr:last-child');
-                if (!last) { addRow(); return; }
-                const data = getRowData(last);
-                addRow(data);
-            });
-
-            // Inicial: recalcular y poner en mayúsculas
-            document.querySelectorAll('#itemsTable tbody tr').forEach(tr => {
-                recalcRow(tr);
-                tr.querySelectorAll('input[type="text"]').forEach(inp => inp.value = (inp.value || '').toUpperCase());
-            });
+          });
         })();
     </script>
+    <script>
+        (function(){
+          const input = document.getElementById('Evidencias');
+          const list  = document.getElementById('eviList');
+          const MAX_COUNT = 10;
+          const MAX_SIZE  = 20 * 1024 * 1024; // 20MB
+          const ALLOWED   = ['pdf','jpg','jpeg','png','heic','xlsx','xls','csv','txt','doc','docx','zip'];
+
+          function ext(name){
+            const i = (name || '').lastIndexOf('.');
+            return i >= 0 ? name.slice(i+1).toLowerCase() : '';
+          }
+
+          input?.addEventListener('change', function(){
+            list.innerHTML = '';
+            const files = Array.from(input.files || []);
+            let ok = true;
+
+            if (files.length > MAX_COUNT) {
+              ok = false;
+              list.innerHTML = `<li class="text-danger">Máximo ${MAX_COUNT} archivos.</li>`;
+            }
+
+            files.forEach(f => {
+              const li = document.createElement('li');
+              const e  = ext(f.name);
+              const badExt  = !ALLOWED.includes(e);
+              const badSize = f.size > MAX_SIZE;
+
+              li.textContent = `${f.name} — ${(f.size/1024).toFixed(0)} KB`;
+              if (badExt || badSize) {
+                ok = false;
+                li.classList.add('text-danger');
+                li.innerHTML += ` (inválido: ${badExt ? 'extensión' : ''}${(badExt&&badSize)?' y ':''}${badSize ? 'tamaño' : ''})`;
+              }
+              list.appendChild(li);
+            });
+
+            if (!ok) {
+              // si algo inválido, limpiamos el input
+              input.value = '';
+            }
+          });
+        })();
+    </script>
+
 }

@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.IO;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
 using solicitudMovimientosPcs.Data;
 using solicitudMovimientosPcs.Models;
 using solicitudMovimientosPcs.Models.PcFinal;
@@ -19,6 +21,82 @@ namespace solicitudMovimientosPcs.Controllers
             _env = env;
         }
 
+        // ===== Configuración de archivos (PC Final) =====
+        private static readonly HashSet<string> AllowedExts = new(StringComparer.OrdinalIgnoreCase)
+            { ".pdf",".doc",".docx",".xls",".xlsx",".png",".jpg",".jpeg" };
+        private const long MaxSize = 20L * 1024 * 1024; // 20 MB
+        private const int MaxCount = 10;
+
+        private string FinalFolderFs(int requestId)
+        {
+            var root = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            return Path.Combine(root, "uploads", "pc", requestId.ToString());
+        }
+        private string FinalFolderUrl(int requestId) => $"/uploads/pc/{requestId}";
+
+        private List<EvidenceItem> GetFinalDocs(int requestId)
+        {
+            var list = new List<EvidenceItem>();
+            var folder = FinalFolderFs(requestId);
+            if (!Directory.Exists(folder)) return list;
+
+            var urlBase = FinalFolderUrl(requestId);
+            foreach (var p in Directory.GetFiles(folder))
+            {
+                var fi = new FileInfo(p);
+                list.Add(new EvidenceItem
+                {
+                    FileName = fi.Name,
+                    Url = $"{urlBase}/{fi.Name}",
+                    Ext = fi.Extension.TrimStart('.').ToLowerInvariant(),
+                    Size = fi.Length
+                });
+            }
+            return list.OrderBy(x => x.FileName, StringComparer.OrdinalIgnoreCase).ToList();
+        }
+
+        private async Task<(int saved, int skipped, string[] errors)> SaveFinalDocsAsync(int requestId, IEnumerable<IFormFile>? files)
+        {
+            var errs = new List<string>();
+            if (files == null) return (0, 0, errs.ToArray());
+
+            var valid = files.Where(f => f != null && f.Length > 0).ToList();
+            if (valid.Count > MaxCount)
+            {
+                errs.Add($"Máximo {MaxCount} archivos.");
+                return (0, valid.Count, errs.ToArray());
+            }
+
+            var folder = FinalFolderFs(requestId);
+            Directory.CreateDirectory(folder);
+
+            int saved = 0, skipped = 0;
+            foreach (var f in valid)
+            {
+                var ext = Path.GetExtension(f.FileName);
+                if (!AllowedExts.Contains(ext))
+                {
+                    skipped++; errs.Add($"Extensión no permitida: {f.FileName}");
+                    continue;
+                }
+                if (f.Length > MaxSize)
+                {
+                    skipped++; errs.Add($"Tamaño excedido (20MB): {f.FileName}");
+                    continue;
+                }
+
+                var safeBase = Path.GetFileNameWithoutExtension(f.FileName);
+                var fileName = $"{DateTime.UtcNow:yyyyMMddHHmmssfff}_{Guid.NewGuid():N}_{safeBase}{ext}";
+                var path = Path.Combine(folder, fileName);
+
+                using var stream = System.IO.File.Create(path);
+                await f.CopyToAsync(stream);
+                saved++;
+            }
+
+            return (saved, skipped, errs.ToArray());
+        }
+
         // Helper: ¿todas las aprobaciones en APPROVE?
         private static bool IsFullyApproved(PcMovimientosAprobaciones? a) =>
             a != null
@@ -31,7 +109,7 @@ namespace solicitudMovimientosPcs.Controllers
             && a.FinMngStatus == ApprovalStatus.APPROVED
             && a.FinJpnStatus == ApprovalStatus.APPROVED;
 
-        // Lista de solicitudes listas para finalización por PC (todas aprobadas y no completadas)
+        // ====== LISTA ======
         public async Task<IActionResult> Index()
         {
             var list = await _db.PcMovimientosRequests
@@ -52,7 +130,7 @@ namespace solicitudMovimientosPcs.Controllers
             return View(list);
         }
 
-        // Controllers/PcFinalController.cs (ejemplo)
+        // ====== FINALIZAR (GET) ======
         [HttpGet]
         public async Task<IActionResult> Finalizar(int id)
         {
@@ -62,17 +140,30 @@ namespace solicitudMovimientosPcs.Controllers
 
             if (req == null) return NotFound();
 
+            // Permite: FDO, PDO, WDO, MLO, ESTATUS
+            var allowed = new[] { "FDO", "PDO", "WDO", "MLO", "ESTATUS" };
+
             var vm = new PcFinalizarViewModel
             {
                 RequestId = req.Id,
-                Folio = req.PcFolio, // si lo manejas así
-                TipoMovimiento = req.PcTipoMovimiento, // ← nuevo
+                Folio = req.PcFolio,
+                // ⬇️ parsea CSV guardado en la solicitud
+                TipoMovimiento = (req.PcTipoMovimiento ?? "")
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .Select(x => x.ToUpperInvariant())
+                    .Where(x => allowed.Contains(x))
+                    .Distinct()
+                    .ToArray(),
                 Request = req
             };
+
+            // Listado de documentos ya subidos en finalización
+            ViewBag.FinalDocs = GetFinalDocs(req.Id);
+
             return View(vm);
         }
 
-
+        // ====== FINALIZAR (POST) ======
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Finalizar(PcFinalizarViewModel vm)
@@ -83,59 +174,63 @@ namespace solicitudMovimientosPcs.Controllers
 
             if (req == null) return NotFound();
 
-            // Validaciones de flujo/estado
+            // Estado del flujo
             if (!IsFullyApproved(req.Aprobaciones) || req.RequestStatus == RequestStatus.Completado)
                 ModelState.AddModelError(string.Empty, "La solicitud no está lista para finalización por PC.");
 
-            // Validación: TipoMovimiento requerido y dentro del catálogo
-            var allowedTipos = new[] { "FDO", "PDO", "MLO", "ESTATUS" };
-            if (string.IsNullOrWhiteSpace(vm.TipoMovimiento) || !allowedTipos.Contains(vm.TipoMovimiento))
-                ModelState.AddModelError(nameof(vm.TipoMovimiento), "Selecciona un Tipo de Movimiento válido.");
+            // Validación de tipos múltiples
+            var allowedTipos = new[] { "FDO", "PDO", "WDO", "MLO", "ESTATUS" };
+            var tipos = (vm.TipoMovimiento ?? System.Array.Empty<string>())
+                .Select(t => (t ?? "").Trim().ToUpperInvariant())
+                .Where(t => allowedTipos.Contains(t))
+                .Distinct()
+                .ToArray();
 
-            // Validación: archivo obligatorio
-            if (vm.Documento == null || vm.Documento.Length == 0)
-                ModelState.AddModelError(nameof(vm.Documento), "Debes subir un documento.");
+            if (tipos.Length == 0)
+                ModelState.AddModelError(nameof(vm.TipoMovimiento), "Selecciona al menos un Tipo de Movimiento.");
+
+            // Validación de documentos (si quieres forzarlo: al menos 1)
+            if (vm.Documentos == null || vm.Documentos.Count == 0)
+                ModelState.AddModelError(nameof(vm.Documentos), "Debes subir al menos un documento.");
 
             if (!ModelState.IsValid)
             {
                 vm.Request = req;
+                ViewBag.FinalDocs = GetFinalDocs(req.Id); // opcional
                 return View(vm);
             }
 
-            // Validar extensión
-            var ext = Path.GetExtension(vm.Documento.FileName).ToLowerInvariant();
-            var allowed = new[] { ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".png", ".jpg", ".jpeg" };
-            if (!allowed.Contains(ext))
-            {
-                ModelState.AddModelError(nameof(vm.Documento), "Formato no permitido (usa PDF, DOC(X), XLS(X), PNG o JPG).");
-                vm.Request = req;
-                return View(vm);
-            }
-
-            // Guardar archivo en wwwroot/uploads/pc/{id}/
+            // === Guardado de documentos múltiples ===
             var folder = Path.Combine(_env.WebRootPath, "uploads", "pc", req.Id.ToString());
             Directory.CreateDirectory(folder);
 
-            var safeBase = Path.GetFileNameWithoutExtension(vm.Documento.FileName);
-            var fileName = $"{DateTime.UtcNow:yyyyMMddHHmmssfff}_{safeBase}{ext}";
-            var fullPath = Path.Combine(folder, fileName);
+            var allowedExt = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            { ".pdf",".doc",".docx",".xls",".xlsx",".png",".jpg",".jpeg" };
 
-            using (var stream = System.IO.File.Create(fullPath))
-                await vm.Documento.CopyToAsync(stream);
+            foreach (var doc in vm.Documentos!)
+            {
+                if (doc == null || doc.Length == 0) continue;
+                var ext = Path.GetExtension(doc.FileName);
+                if (!allowedExt.Contains(ext)) continue;
 
-            var relativePath = $"/uploads/pc/{req.Id}/{fileName}";
+                var safeBase = Path.GetFileNameWithoutExtension(doc.FileName);
+                var fileName = $"{DateTime.UtcNow:yyyyMMddHHmmssfff}_{safeBase}{ext}";
+                var fullPath = Path.Combine(folder, fileName);
+                using var stream = System.IO.File.Create(fullPath);
+                await doc.CopyToAsync(stream);
+            }
 
-            // === Actualizar solicitud con los nuevos campos ===
+            // === Actualiza campos de PC ===
             req.PcFolio = vm.Folio?.Trim();
-            req.PcTipoMovimiento = vm.TipoMovimiento?.Trim();   // ← Guarda el tipo
-            req.PcDocumentoPath = relativePath;
-            req.RequestStatus = RequestStatus.Completado;
+            req.PcTipoMovimiento = string.Join(",", tipos);  // ⬅️ guarda CSV
+                                                             // Si antes usabas PcDocumentoPath (único), puedes dejar de usarlo
+                                                             // req.PcDocumentoPath = null;
 
+            req.RequestStatus = RequestStatus.Completado;
             req.PcFinalizadoPor = User.FindFirst("DisplayName")?.Value ?? User.Identity?.Name;
             req.PcFinalDate = DateTime.Now;
 
             await _db.SaveChangesAsync();
-
             TempData["Ok"] = "Solicitud finalizada correctamente.";
             return RedirectToAction(nameof(Index));
         }

@@ -66,3 +66,4 @@ wwwroot\manifest.json
 wwwroot\sw.js
 wwwroot\uploads\pc\14\20251106143257546_Catálogo Números de Parte Importados MEAX.xlsx
 wwwroot\uploads\pc\18\20251106143216104_Catálogo Números de Parte Importados MEAX.xlsx
+wwwroot\uploads\solicitudes\89\2f868fd2e0b24a939cd046036143d8d7.png

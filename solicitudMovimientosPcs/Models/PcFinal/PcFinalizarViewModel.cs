@@ -14,9 +14,9 @@ namespace solicitudMovimientosPcs.Models.PcFinal
         // ← NUEVO
         [Required(ErrorMessage = "El tipo de movimiento es requerido.")]
         [Display(Name = "Tipo de Movimiento")]
-        public string? TipoMovimiento { get; set; }
+        public string[] TipoMovimiento { get; set; } = System.Array.Empty<string>();
 
-        public IFormFile? Documento { get; set; }
+        public List<IFormFile>? Documentos { get; set; }
 
         // Para mostrar datos arriba
         public PcMovimientosRequest? Request { get; set; }

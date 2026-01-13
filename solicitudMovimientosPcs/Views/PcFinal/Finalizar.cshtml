@@ -192,18 +192,39 @@
             <input type="hidden" asp-for="RequestId" />
 
             <div class="row g-3">
-                <div class="col-md-4">
-                    <label asp-for="TipoMovimiento" class="form-label">Tipo de Movimiento</label>
-                    <select asp-for="TipoMovimiento" class="form-select" required>
-                        <option value="">-- Selecciona --</option>
-                        <option value="FDO">FDO</option>
-                        <option value="PDO">PDO</option>
-                        <option value="WDO">WDO</option>
-                        <option value="MLO">MLO</option>
-                        <option value="ESTATUS">ESTATUS</option>
-                    </select>
+                <div class="col-md-8">
+                    <label class="form-label">Tipo de Movimiento (puedes elegir varios)</label>
+
+                    @{
+                        var sel = new HashSet<string>(Model?.TipoMovimiento ?? Array.Empty<string>(), StringComparer.OrdinalIgnoreCase);
+                        bool isOn(string v) => sel.Contains(v);
+                    }
+
+                    <div class="d-flex flex-wrap gap-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="tmFDO" name="TipoMovimiento" value="FDO" @(isOn("FDO") ? "checked" : "") />
+                            <label class="form-check-label" for="tmFDO">FDO</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="tmPDO" name="TipoMovimiento" value="PDO" @(isOn("PDO") ? "checked" : "") />
+                            <label class="form-check-label" for="tmPDO">PDO</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="tmWDO" name="TipoMovimiento" value="WDO" @(isOn("WDO") ? "checked" : "") />
+                            <label class="form-check-label" for="tmWDO">WDO</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="tmMLO" name="TipoMovimiento" value="MLO" @(isOn("MLO") ? "checked" : "") />
+                            <label class="form-check-label" for="tmMLO">MLO</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="tmEST" name="TipoMovimiento" value="ESTATUS" @(isOn("ESTATUS") ? "checked" : "") />
+                            <label class="form-check-label" for="tmEST">ESTATUS</label>
+                        </div>
+                    </div>
                     <span asp-validation-for="TipoMovimiento" class="text-danger"></span>
                 </div>
+
 
                 <div class="col-md-4">
                     <label asp-for="Folio" class="form-label">Folio PC</label>
@@ -211,18 +232,35 @@
                     <span asp-validation-for="Folio" class="text-danger"></span>
                 </div>
 
-                <div class="col-md-4">
-                    <label asp-for="Documento" class="form-label">Documento (PDF, DOC[X], XLS[X], PNG, JPG)</label>
-                    <input asp-for="Documento" type="file" class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" />
-                    <span asp-validation-for="Documento" class="text-danger"></span>
-                    @if (!string.IsNullOrWhiteSpace(req?.PcDocumentoPath))
+                <div class="col-md-8">
+                    <label class="form-label">Documentos (PDF, DOC[X], XLS[X], PNG, JPG) — múltiples</label>
+                    <input asp-for="Documentos"
+                           id="DocsPcFinal"
+                           type="file"
+                           class="form-control"
+                           accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+                           multiple />
+                    <span asp-validation-for="Documentos" class="text-danger"></span>
+                    <div class="form-text">Hasta 10 archivos, máximo 20 MB c/u.</div>
+
+                    @* Listar documentos ya subidos a la finalización *@
+                    @if (ViewBag.FinalDocs is List<EvidenceItem> fdocs && fdocs.Any())
                     {
-                        <div class="form-text mt-1">
-                            Documento actual:
-                            <a href="@req.PcDocumentoPath" target="_blank" rel="noopener">ver/descargar</a>
+                        <div class="mt-2">
+                            <div class="small text-muted mb-1">Documentos actuales:</div>
+                            <ul class="mb-0">
+                                @foreach (var d in fdocs)
+                                {
+                                    <li>
+                                        <a href="@d.Url" target="_blank" rel="noopener">@d.FileName</a>
+                                        <span class="text-muted">(@(Math.Round(d.Size / 1024m, 0)) KB)</span>
+                                    </li>
+                                }
+                            </ul>
                         </div>
                     }
                 </div>
+
             </div>
 
             <div class="d-flex justify-content-end">
@@ -239,6 +277,43 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        (function(){
+          const input = document.getElementById('DocsPcFinal');
+          if(!input) return;
+
+          const MAX_COUNT = 10;
+          const MAX_SIZE  = 20 * 1024 * 1024; // 20 MB
+          const ALLOWED   = ['pdf','doc','docx','xls','xlsx','png','jpg','jpeg'];
+
+          function ext(name){
+            const i = (name || '').lastIndexOf('.');
+            return i >= 0 ? name.slice(i+1).toLowerCase() : '';
+          }
+
+          input.addEventListener('change', function(){
+            const files = Array.from(input.files || []);
+            let ok = true, msg = [];
+
+            if (files.length > MAX_COUNT) {
+              ok = false; msg.push(`Máximo ${MAX_COUNT} archivos.`);
+            }
+
+            files.forEach(f => {
+              const e = ext(f.name);
+              if (!ALLOWED.includes(e)) { ok = false; msg.push(`Extensión no permitida: ${f.name}`); }
+              if (f.size > MAX_SIZE)    { ok = false; msg.push(`Tamaño excedido: ${f.name}`); }
+            });
+
+            if (!ok) {
+              alert(msg.join('\n'));
+              input.value = '';
+            }
+          });
+        })();
+    </script>
+
 }
 
 @section Styles {

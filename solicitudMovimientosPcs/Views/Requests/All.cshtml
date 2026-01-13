@@ -1,0 +1,134 @@
+﻿@model IEnumerable<solicitudMovimientosPcs.Models.PcMovimientosRequest>
+@using Microsoft.AspNetCore.Mvc.Rendering
+@using solicitudMovimientosPcs.Models
+
+@{
+    ViewData["Title"] = "Solicitudes (filtradas)";
+    var statusItems = (IEnumerable<SelectListItem>)ViewBag.StatusItems;
+    var depItems = (IEnumerable<SelectListItem>)ViewBag.DepItems;
+    var lineaItems = (IEnumerable<SelectListItem>)ViewBag.Lineas;
+
+    string q = ViewBag.Q as string ?? "";
+    string desde = ViewBag.Desde as string ?? "";
+    string hasta = ViewBag.Hasta as string ?? "";
+}
+
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0"><i class="fa fa-filter me-2"></i>Solicitudes — filtro inicial: <strong>Completado</strong></h4>
+    </div>
+    <div class="card-body">
+        <form asp-action="All" asp-controller="Requests" method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Buscar</label>
+                <input type="text" name="q" value="@q" class="form-control" placeholder="Folio, solicitante, comentarios..." />
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label">Estado</label>
+                @Html.DropDownList("status", statusItems, new { @class = "form-select" })
+                <div class="form-text">Por defecto: <strong>Completado</strong>.</div>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label">Departamento</label>
+                @Html.DropDownList("departamento", depItems, "(Todos)", new { @class = "form-select" })
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Línea</label>
+                @Html.DropDownList("linea", lineaItems, "(Todas)", new { @class = "form-select" })
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label">Desde</label>
+                <input type="date" name="desde" value="@desde" class="form-control" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Hasta</label>
+                <input type="date" name="hasta" value="@hasta" class="form-control" />
+            </div>
+
+            <div class="col-12 d-flex gap-2">
+                <button class="btn btn-primary"><i class="fa fa-search me-1"></i> Aplicar</button>
+                <a asp-action="All" asp-controller="Requests" class="btn btn-outline-secondary">
+                    Limpiar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="fa fa-table me-2"></i>Resultados (@Model.Count())</span>
+        <a asp-action="Create" class="btn btn-sm btn-success"><i class="fa fa-plus me-1"></i>Nueva solicitud</a>
+    </div>
+
+    <div class="card-body p-0">
+        <div class="table-responsive" style="overflow-x:auto;">
+            <table class="table table-sm mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th style="min-width:80px;">ID</th>
+                        <th style="min-width:140px;">Fecha</th>
+                        <th style="min-width:220px;">Solicitante</th>
+                        <th style="min-width:110px;">Depto</th>
+                        <th style="min-width:160px;">Línea</th>
+                        <th style="min-width:120px;">Urgencia</th>
+                        <th style="min-width:140px;">Estado</th>
+                        <th style="min-width:160px;">Folio PC</th>
+                        <th style="min-width:200px;">Tipos mov.</th>
+                        <th style="min-width:100px;" class="text-end">Items</th>
+                        <th style="min-width:140px;" class="text-end">Total</th>
+                        <th style="min-width:120px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="12" class="text-center text-muted py-3">
+                                No hay resultados con los filtros seleccionados.
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var r in Model)
+                        {
+                            var items = r.Items ?? new List<PcMovimientosItem>();
+                            var total = items.Sum(i => i.Total ?? 0m);
+                            <tr>
+                                <td>@r.Id</td>
+                                <td>@r.Fecha.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td>@(r.Solicitante ?? "-")</td>
+                                <td>@(r.Departamento ?? "-")</td>
+                                <td>@(r.Linea ?? "-")</td>
+                                <td>@r.Urgencia</td>
+                                <td>@r.RequestStatus</td>
+                                <td>@(string.IsNullOrWhiteSpace(r.PcFolio) ? "-" : r.PcFolio)</td>
+                                <td>@(string.IsNullOrWhiteSpace(r.PcTiposMovimiento) ? "-" : r.PcTiposMovimiento)</td>
+                                <td class="text-end">@items.Count</td>
+                                <td class="text-end">@total.ToString("N2")</td>
+                                <td>
+                                    <a asp-action="Details" asp-route-id="@r.Id" class="btn btn-sm btn-outline-primary">
+                                        <i class="fa fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .table td, .table th {
+            white-space: nowrap;
+        }
+    </style>
+}

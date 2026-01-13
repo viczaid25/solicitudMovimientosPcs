@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Hosting;
+using solicitudMovimientosPcs.Utils;
+using solicitudMovimientosPcs.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using solicitudMovimientosPcs.Data;
-using solicitudMovimientosPcs.Models;
 using solicitudMovimientosPcs.Services;
 
 namespace solicitudMovimientosPcs.Controllers
@@ -18,6 +20,7 @@ namespace solicitudMovimientosPcs.Controllers
         private readonly IEmailService _email;
         private readonly IReadOnlyDictionary<string, string> _destinos;
         private readonly IStageAccessService _stageAccess;
+        private readonly IWebHostEnvironment _env;
 
         private static readonly string[] Flow = new[] { "MNG", "JPN", "MC", "PL", "PCMNG", "PCJPN", "FINMNG", "FINJPN" };
 
@@ -25,12 +28,14 @@ namespace solicitudMovimientosPcs.Controllers
         ApplicationDbContext db,
         IEmailService email,
         IReadOnlyDictionary<string, string> destinos, 
-        IStageAccessService stageAccess) 
+        IStageAccessService stageAccess,
+        IWebHostEnvironment env) 
         {
             _db = db;
             _email = email;
             _destinos = destinos;
             _stageAccess = stageAccess;
+            _env = env;
         }
 
 
@@ -157,6 +162,8 @@ namespace solicitudMovimientosPcs.Controllers
 
             ViewBag.Stage = st;
             ViewBag.Aprob = apro;
+            ViewBag.Evidence = EvidenceHelper.GetEvidenceList(_env, id);
+
             return View("Details", req);
         }
 

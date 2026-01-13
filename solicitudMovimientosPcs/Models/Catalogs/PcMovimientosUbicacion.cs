@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace solicitudMovimientosPcs.Models.Catalogs
@@ -7,12 +8,12 @@ namespace solicitudMovimientosPcs.Models.Catalogs
     public class PcMovimientosUbicacion
     {
         [Key]
-        [MaxLength(10)]
-        [Column("UBICACION")]
-        public string Ubicacion { get; set; } = string.Empty; // PK natural
+        [StringLength(50)]
+        [Unicode(false)] // opcional, para varchar
+        public string Ubicacion { get; set; } = "";
 
-        [MaxLength(20)]
-        [Column("AREA")]
-        public string Area { get; set; } = string.Empty;
+        [Required, StringLength(20)]
+        [Unicode(false)]
+        public string Area { get; set; } = "";
     }
 }

@@ -154,6 +154,75 @@
   <div class="col-md-3"><div class="kpi"><div class="t">Total MXN</div><div class="n">@sumTotal.ToString("N2")</div><i class="fa fa-dollar-sign"></i></div></div>
 </div>
 
+@{
+    var evidencias = ViewBag.Evidence as List<EvidenceItem> ?? new();
+}
+<div class="card mb-3">
+    <div class="card-header"><i class="fa fa-paperclip me-2"></i> Evidencias</div>
+    <div class="card-body">
+        @if (evidencias.Any())
+        {
+            <div class="evid-grid">
+                @foreach (var f in evidencias)
+                {
+                    var ext = (f.Ext ?? "").ToLowerInvariant();
+                    var isImg = new[] { "jpg", "jpeg", "png", "gif", "webp", "bmp" }.Contains(ext);
+                    var isPdf = ext == "pdf";
+                    var isVideo = new[] { "mp4", "webm", "ogg", "mov" }.Contains(ext);
+                    var isAudio = new[] { "mp3", "wav", "ogg", "m4a" }.Contains(ext);
+
+                    <div class="evid-card">
+                        <div class="evid-thumb">
+                            @if (isImg)
+                            {
+                                <a href="@f.Url" target="_blank" rel="noopener">
+                                    <img src="@f.Url" alt="@f.FileName" loading="lazy" />
+                                </a>
+                            }
+                            else if (isPdf)
+                            {
+                                <iframe src="@f.Url" title="@f.FileName"></iframe>
+                            }
+                            else if (isVideo)
+                            {
+                                <video src="@f.Url" controls></video>
+                            }
+                            else if (isAudio)
+                            {
+                                <audio src="@f.Url" controls></audio>
+                            }
+                            else
+                            {
+                                <div class="evid-generic">
+                                    <i class="fa fa-file"></i>
+                                    <div class="mt-1 small text-muted">.@ext</div>
+                                </div>
+                            }
+                        </div>
+                        <div class="evid-meta">
+                            <div class="name" title="@f.FileName">@f.FileName</div>
+                            <div class="size">@((f.Size / 1024.0).ToString("N0")) KB</div>
+                            <div class="evid-actions">
+                                <a class="btn btn-sm btn-outline-primary" href="@f.Url" target="_blank" rel="noopener">
+                                    <i class="fa fa-arrow-up-right-from-square me-1"></i> Abrir
+                                </a>
+                                <a class="btn btn-sm btn-outline-secondary" href="@f.Url" download>
+                                    <i class="fa fa-download me-1"></i> Descargar
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <span class="text-muted">No hay archivos de evidencia para esta solicitud.</span>
+        }
+    </div>
+</div>
+
+
 <!-- TIMELINE DE APROBACIONES -->
 @if (apro is not null)
 {
@@ -446,6 +515,92 @@
 .stepper li.pill.danger {border-color:#dc2626;background:#fef2f2}
 .stepper li.pill.warn   {border-color:#f59e0b;background:#fffbeb}
 .stepper li.pill.pending{border-color:#94a3b8;background:#f8fafc}
+
+        .evid-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 12px;
+        }
+
+        .evid-card {
+            border: 1px solid var(--border, #e5e7eb);
+            border-radius: 12px;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,.04));
+            display: flex;
+            flex-direction: column;
+        }
+
+        .evid-thumb {
+            background: #f8fafc;
+            display: grid;
+            place-items: center;
+            min-height: 160px;
+            padding: 8px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+            .evid-thumb img {
+                max-width: 100%;
+                max-height: 220px;
+                object-fit: contain;
+                display: block;
+            }
+
+            .evid-thumb iframe {
+                width: 100%;
+                height: 240px;
+                border: 0;
+                background: #fff;
+            }
+
+            .evid-thumb video {
+                width: 100%;
+                max-height: 260px;
+            }
+
+            .evid-thumb audio {
+                width: 100%;
+            }
+
+        .evid-generic {
+            display: grid;
+            place-items: center;
+            color: #64748b;
+            padding: 24px 8px;
+        }
+
+            .evid-generic i {
+                font-size: 40px;
+                opacity: .8;
+            }
+
+        .evid-meta {
+            padding: .65rem .75rem;
+            display: grid;
+            gap: .25rem;
+        }
+
+            .evid-meta .name {
+                font-weight: 600;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .evid-meta .size {
+                font-size: .8rem;
+                color: #6b7280;
+            }
+
+        .evid-actions {
+            margin-top: .4rem;
+            display: flex;
+            gap: .4rem;
+            flex-wrap: wrap;
+        }
+
 
 /* ---------- Tabla items: ya controlada por tu site.css ---------- */
 /* Solo aseguramos scroll y nowrap coherentes aquí por si faltan */

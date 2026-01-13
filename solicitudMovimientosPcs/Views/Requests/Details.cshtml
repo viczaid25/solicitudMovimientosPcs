@@ -68,6 +68,109 @@
     </div>
 </div>
 
+@{
+    var evidence = ViewBag.Evidence as IEnumerable<dynamic>; // o IEnumerable<EvidenceItem> si la clase está accesible en la vista
+    string HumanSize(long b)
+    {
+        if (b < 1024) return b + " B";
+        double kb = b / 1024.0;
+        if (kb < 1024) return kb.ToString("0.#") + " KB";
+        double mb = kb / 1024.0;
+        if (mb < 1024) return mb.ToString("0.#") + " MB";
+        double gb = mb / 1024.0;
+        return gb.ToString("0.#") + " GB";
+    }
+    var imgExt = new HashSet<string>(new[] { "jpg", "jpeg", "png", "gif", "webp", "bmp" }, StringComparer.OrdinalIgnoreCase);
+}
+
+@if (evidence != null && evidence.Any())
+{
+    <div class="card mb-3">
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <span><i class="fa fa-paperclip me-2"></i> Evidencias</span>
+            <small class="text-muted">(@evidence.Count() archivo(s))</small>
+        </div>
+
+        <div class="card-body">
+            <div class="row g-3">
+
+                @foreach (var f in evidence)
+                {
+                    string ext = (string)f.Ext;
+                    string url = (string)f.Url;
+                    string name = (string)f.FileName;
+                    long size = (long)f.Size;
+
+                    <div class="col-12">
+                        <div class="border rounded p-2">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fa fa-file me-1"></i>
+                                    <strong>@name</strong>
+                                    <span class="text-muted">(@HumanSize(size))</span>
+                                    <span class="badge bg-light text-dark ms-2">@ext.ToUpper()</span>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <a class="btn btn-sm btn-outline-secondary" href="@url" target="_blank" rel="noopener">
+                                        <i class="fa fa-external-link-alt me-1"></i> Abrir
+                                    </a>
+                                    <a class="btn btn-sm btn-outline-primary" href="@url" download>
+                                        <i class="fa fa-download me-1"></i> Descargar
+                                    </a>
+                                </div>
+                            </div>
+
+                            @if (imgExt.Contains(ext))
+                            {
+                                <!-- Vista previa de imagen -->
+                                <img src="@url" alt="@name" class="img-fluid rounded border" style="max-height:420px;object-fit:contain;">
+                            }
+                            else if (ext == "pdf")
+                            {
+                                <!-- PDF embebido (fallback deja el botón Abrir/Descargar) -->
+                                <object data="@url" type="application/pdf" width="100%" height="520">
+                                    <div class="alert alert-info mb-0">
+                                        Tu navegador no pudo mostrar el PDF incrustado.
+                                        Usa <a href="@url" target="_blank" rel="noopener">Abrir</a> o <a href="@url" download>Descargar</a>.
+                                    </div>
+                                </object>
+                            }
+                            else if (ext is "mp4" or "webm")
+                            {
+                                <!-- (Opcional) si llegan videos -->
+                                <video src="@url" controls class="w-100" style="max-height:520px;"></video>
+                            }
+                            else if (ext == "heic")
+                            {
+                                <div class="alert alert-warning mb-0">
+                                    El formato HEIC no se puede previsualizar en la mayoría de navegadores.
+                                    Usa <a href="@url" target="_blank" rel="noopener">Abrir</a> o <a href="@url" download>Descargar</a>.
+                                </div>
+                            }
+                            else
+                            {
+                                <!-- Otros tipos: solo links (docx, xlsx, zip, csv, etc.) -->
+                                <div class="small text-muted">
+                                    Tipo no previsualizable. Usa los botones <em>Abrir</em> o <em>Descargar</em>.
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="alert alert-light border d-flex align-items-center gap-2">
+        <i class="fa fa-info-circle"></i>
+        No hay evidencias adjuntas para esta solicitud.
+    </div>
+}
+
+
 @* ---------- Flujo de aprobación (Stepper compacto) ---------- *@
 @{
     var apr = Model.Aprobaciones;
