@@ -234,7 +234,9 @@ namespace solicitudMovimientosPcs.Controllers
                 .FirstOrDefaultAsync(r => r.Id == id);
 
             if (request == null) return NotFound();
+
             ViewBag.Evidence = GetEvidenceList(id);
+            ViewBag.PcDocs = GetPcFinalDocs(id);
 
             return View(request);
         }
@@ -575,6 +577,29 @@ namespace solicitudMovimientosPcs.Controllers
             return View("All", list);
         }
 
+        // Al final del controlador (RequestsController)
+        private List<EvidenceItem> GetPcFinalDocs(int requestId)
+        {
+            var list = new List<EvidenceItem>();
+            var wwwroot = _env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var folder = Path.Combine(wwwroot, "uploads", "pc", requestId.ToString());
+
+            if (!Directory.Exists(folder))
+                return list;
+
+            foreach (var p in Directory.GetFiles(folder))
+            {
+                var fi = new FileInfo(p);
+                list.Add(new EvidenceItem
+                {
+                    FileName = fi.Name,
+                    Url = $"/uploads/pc/{requestId}/{fi.Name}",
+                    Ext = fi.Extension.TrimStart('.').ToLowerInvariant(),
+                    Size = fi.Length
+                });
+            }
+            return list;
+        }
 
 
     }
